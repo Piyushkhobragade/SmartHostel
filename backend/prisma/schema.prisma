@@ -1,0 +1,171 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Authentication - User model for login and role-based access control
+model User {
+  id           String   @id @default(uuid())
+  username     String   @unique
+  passwordHash String
+  role         String   // ADMIN, WARDEN, STAFF, RESIDENT
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Resident {
+  id          String   @id @default(uuid())
+  fullName    String
+  email       String   @unique
+  phone       String
+  status      String   @default("ACTIVE") // ACTIVE, INACTIVE
+  room        Room?    @relation(fields: [roomId], references: [id])
+  roomId      String?
+  allocations Allocation[]
+  attendance  AttendanceLog[]
+  visitors    VisitorLog[]
+  maintenance MaintenanceRequest[]
+  invoices    FeeInvoice[]
+  payments    Payment[]
+  messSubscriptions MessSubscription[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Room {
+  id              String   @id @default(uuid())
+  roomNumber      String   @unique
+  capacity        Int
+  currentOccupancy Int     @default(0)
+  type            String   // AC, NON_AC
+  status          String   @default("AVAILABLE") // AVAILABLE, OCCUPIED, MAINTENANCE
+  residents       Resident[]
+  allocations     Allocation[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Allocation {
+  id          String   @id @default(uuid())
+  resident    Resident @relation(fields: [residentId], references: [id])
+  residentId  String
+  room        Room    @relation(fields: [roomId], references: [id])
+  roomId      String
+  startDate   DateTime
+  endDate     DateTime?
+  status      String   // ACTIVE, COMPLETED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model AttendanceLog {
+  id          String   @id @default(uuid())
+  resident    Resident @relation(fields: [residentId], references: [id])
+  residentId  String
+  date        DateTime
+  status      String   // PRESENT, ABSENT, LATE
+  method      String   @default("MANUAL") // MANUAL, RFID
+  checkInTime DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model VisitorLog {
+  id          String   @id @default(uuid())
+  visitorName String
+  resident    Resident @relation(fields: [residentId], references: [id])
+  residentId  String
+  checkInTime DateTime @default(now())
+  checkOutTime DateTime?
+  purpose     String
+  idType      String   // AADHAR, PAN, DRIVING_LICENSE, PASSPORT
+  idLast4     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Asset {
+  id               String                @id @default(uuid())
+  name             String
+  category         String
+  status           String                // FUNCTIONAL, REPAIR, BROKEN
+  location         String
+  purchasedAt      DateTime?
+  maintenanceReqs  MaintenanceRequest[]
+  createdAt        DateTime              @default(now())
+  updatedAt        DateTime              @updatedAt
+}
+
+model MaintenanceRequest {
+  id          String    @id @default(uuid())
+  asset       Asset?    @relation(fields: [assetId], references: [id])
+  assetId     String?
+  resident    Resident? @relation(fields: [residentId], references: [id])
+  residentId  String?
+  category    String    // Electrical, Plumbing, Cleaning, Other
+  description String
+  status      String    @default("OPEN") // OPEN, IN_PROGRESS, RESOLVED
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model FeeInvoice {
+  id          String   @id @default(uuid())
+  resident    Resident @relation(fields: [residentId], references: [id])
+  residentId  String
+  amount      Float
+  dueDate     DateTime
+  description String
+  status      String   @default("PENDING") // PENDING, PAID, PARTIAL
+  payments    Payment[]
+  issuedAt    DateTime @default(now())
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Payment {
+  id          String   @id @default(uuid())
+  invoice     FeeInvoice @relation(fields: [invoiceId], references: [id])
+  invoiceId   String
+  resident    Resident @relation(fields: [residentId], references: [id])
+  residentId  String
+  amount      Float
+  paidAt      DateTime @default(now())
+  method      String   // CASH, ONLINE, UPI, CARD
+  reference   String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model OccupancyHistory {
+  id             String   @id @default(uuid())
+  date           DateTime
+  totalBeds      Int
+  occupiedBeds   Int
+  createdAt      DateTime @default(now())
+}
+
+// Mess Management - Subscriptions for mess services
+model MessSubscription {
+  id          String    @id @default(uuid())
+  residentId  String
+  planName    String    // e.g. "Standard Veg", "Non-Veg", "Premium", etc.
+  monthlyFee  Float
+  startDate   DateTime
+  endDate     DateTime?
+  isActive    Boolean   @default(true)
+
+  resident    Resident  @relation(fields: [residentId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([residentId])
+  @@index([isActive])
+}
