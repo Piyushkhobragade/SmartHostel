@@ -2,13 +2,13 @@
 
 A modern, full-stack web application designed to streamline hostel operations by managing residents, room allocations, mess subscriptions, fee collection, visitor logs, attendance tracking, and maintenance requests.
 
-## 🎯 Overview
+## Overview
 
 SmartHostel provides a comprehensive solution for hostel administrators and staff to efficiently manage day-to-day operations. Built with a clean, intuitive interface and robust backend, it offers role-based access control, real-time analytics, and seamless dark/light mode support.
 
 ---
 
-## ✨ Features
+## Features
 
 ### Core Modules
 
@@ -37,7 +37,7 @@ SmartHostel provides a comprehensive solution for hostel administrators and staf
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 ### Frontend
 - **React** – Component-based UI library
@@ -65,7 +65,7 @@ SmartHostel provides a comprehensive solution for hostel administrators and staf
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 smart-hostel/
@@ -96,7 +96,7 @@ smart-hostel/
 
 ---
 
-## 🚀 Getting Started
+## Getting Started
 
 ### Prerequisites
 
@@ -170,11 +170,11 @@ smart-hostel/
 - Username: `staff`
 - Password: `Staff@123`
 
-> ⚠️ **Security Note:** Change these default credentials immediately in production environments.
+> **Security Note:** Change these default credentials immediately in production environments.
 
 ---
 
-## 📖 Usage Overview
+## Usage Overview
 
 ### For Administrators
 
@@ -199,7 +199,7 @@ Staff members have limited access to:
 
 ---
 
-## 🎨 Key Features in Detail
+## Key Features in Detail
 
 ### Dashboard Analytics
 - Total residents count
@@ -228,7 +228,7 @@ Staff members have limited access to:
 
 ---
 
-## 🔮 Future Scope
+## Future Scope
 
 - **Resident Self-Service Portal** – Allow residents to view their profiles, attendance, and fee status
 - **Automated Mess Billing** – Generate monthly mess invoices based on subscription plans
@@ -240,7 +240,7 @@ Staff members have limited access to:
 
 ---
 
-## 🧪 Testing
+## Testing
 
 A comprehensive manual test plan is available in `docs/TEST_PLAN.md`. It covers:
 - Authentication and RBAC
@@ -251,15 +251,19 @@ A comprehensive manual test plan is available in `docs/TEST_PLAN.md`. It covers:
 
 ---
 
-## 📝 Documentation
+## Documentation
 
 - **Test Plan** – `docs/TEST_PLAN.md`
 - **Upgrade Guide** – `docs/UPGRADE_GUIDE.md`
 - **Mess Migration** – `backend/MESS_MIGRATION.md`
+- **Architecture** – `docs/ARCHITECTURE.md`
+- **Known Limitations** – `docs/KNOWN_LIMITATIONS.md`
+- **Accessibility & SEO** – `docs/ACCESSIBILITY_SEO_CHECKLIST.md`
+- **Demo Flow** – `docs/DEMO_FLOW.md`
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 This is a student project developed as part of academic coursework. The codebase follows modular design principles for easy maintenance and extension.
 
@@ -271,13 +275,13 @@ This is a student project developed as part of academic coursework. The codebase
 
 ---
 
-## 📄 License
+## License
 
 This project is developed for educational purposes.
 
 ---
 
-## 👨‍💻 Credits
+## Credits
 
 Developed as a comprehensive hostel management solution with focus on:
 - Clean, maintainable code
@@ -287,17 +291,17 @@ Developed as a comprehensive hostel management solution with focus on:
 
 ---
 
-## 🐛 Known Issues
+## Known Issues
 
 - Seed script (`seed.ts`) is currently disabled due to corruption – use `createAdmin.ts` for initial setup
 - Prisma version can be upgraded from 5.10.0 to 7.0.1 (optional)
 
 ---
 
-## 📞 Support
+## Support
 
 For issues or questions, please refer to the documentation in the `docs/` directory or check the inline code comments.
 
 ---
 
-**Built with ❤️ for efficient hostel management**
+**SmartHostel** – Efficient hostel management made simple.
