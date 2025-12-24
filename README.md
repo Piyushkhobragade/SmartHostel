@@ -281,6 +281,12 @@ This project is developed for educational purposes.
 
 ---
 
+## Author
+
+**Piyush Khobragade**
+
+---
+
 ## Credits
 
 Developed as a comprehensive hostel management solution with focus on:
