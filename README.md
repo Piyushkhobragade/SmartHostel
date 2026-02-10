@@ -310,4 +310,4 @@ For issues or questions, please refer to the documentation in the `docs/` direct
 
 ---
 
-**SmartHostel** – Efficient hostel management made simple.
+**SmartHostel** – Efficient hostel management made simple and easy.
