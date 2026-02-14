@@ -1,5 +1,6 @@
 # SmartHostel – Accessibility & SEO Checklist
 
+
 ## Introduction
 
 This document tracks accessibility and SEO considerations implemented in the SmartHostel web application. It serves as a reference for current compliance status and identifies areas for future improvement to ensure the application is usable by all users and discoverable by search engines.
