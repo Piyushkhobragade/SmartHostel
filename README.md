@@ -97,6 +97,7 @@ smart-hostel/
 
 ---
 
+
 ## Getting Started
 
 ### Prerequisites
