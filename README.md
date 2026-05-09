@@ -38,6 +38,8 @@ SmartHostel provides a comprehensive solution for hostel administrators and staf
 
 ---
 
+
+
 ## Tech Stack
 
 ### Frontend
