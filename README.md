@@ -49,6 +49,7 @@ SmartHostel provides a comprehensive solution for hostel administrators and staf
 - **React Router** – Client-side routing
 - **Lucide React** – Modern icon library
 - **Recharts** – Data visualization for analytics
+- 
 
 ### Backend
 - **Node.js** – JavaScript runtime
