@@ -1,5 +1,6 @@
 # SmartHostel – Smart Hostel Management System
 
+
 A modern, full-stack web application designed to streamline hostel operations by managing residents, room allocations, mess subscriptions, fee collection, visitor logs, attendance tracking, and maintenance requests.
 
 
