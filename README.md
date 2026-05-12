@@ -14,6 +14,7 @@ SmartHostel provides a comprehensive solution for hostel administrators and staf
 
 ### Core Modules
 
+
 - **Residents Management** – Register, update, and track student residents with detailed profiles
 - **Room Allocation & Occupancy** – Manage room assignments, capacity, and availability status
 - **Attendance Tracking** – Record daily resident presence with manual and RFID support
