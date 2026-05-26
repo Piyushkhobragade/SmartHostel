@@ -54,7 +54,7 @@ export default function ChangePasswordModal({ isOpen, onClose }: ChangePasswordM
         try {
             const token = localStorage.getItem('token');
             await axios.post(
-                'http://localhost:3000/api/auth/change-password',
+                'http://localhost:3001/api/auth/change-password',
                 {
                     oldPassword: formData.oldPassword,
                     newPassword: formData.newPassword

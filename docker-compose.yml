@@ -1,0 +1,80 @@
+version: "3.9"
+
+services:
+
+  # ==============================
+  # PostgreSQL Database Service
+  # ==============================
+  postgres:
+    image: postgres:16
+    container_name: smarthostel-postgres
+
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: smarthostel
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    restart: unless-stopped
+
+  # ==============================
+  # Redis Cache Service
+  # ==============================
+  redis:
+    image: redis:7
+    container_name: smarthostel-redis
+
+    ports:
+      - "6379:6379"
+
+    restart: unless-stopped
+
+  # ==============================
+  # Backend API Service
+  # ==============================
+  backend:
+    build:
+      context: ./backend
+
+    container_name: smarthostel-backend
+
+    env_file:
+      - ./backend/.env
+
+    ports:
+      - "5000:3001"
+
+    depends_on:
+      - postgres
+      - redis
+
+    restart: unless-stopped
+
+  # ==============================
+  # Frontend Web Application
+  # ==============================
+  frontend:
+    build:
+      context: ./frontend
+
+    container_name: smarthostel-frontend
+
+    ports:
+      - "3000:3000"
+
+    depends_on:
+      - backend
+
+    restart: unless-stopped
+
+
+# ==================================
+# Persistent Docker Volumes
+# ==================================
+volumes:
+  postgres_data:

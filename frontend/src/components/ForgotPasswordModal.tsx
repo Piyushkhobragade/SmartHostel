@@ -54,7 +54,7 @@ export default function ForgotPasswordModal({ isOpen, onClose }: ForgotPasswordM
         setIsLoading(true);
         try {
             const response = await axios.post(
-                'http://localhost:3000/api/auth/forgot-password',
+                'http://localhost:3001/api/auth/forgot-password',
                 {
                     username: formData.username,
                     resetCode: formData.resetCode,
