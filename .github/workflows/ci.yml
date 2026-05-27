@@ -1,0 +1,107 @@
+name: SmartHostel CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+  pull_request:
+    branches:
+      - main
+      - master
+
+jobs:
+
+  backend-build:
+    name: Backend Build Verification
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+
+      # =====================================
+      # Checkout Repository
+      # =====================================
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # =====================================
+      # Setup Node.js
+      # =====================================
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # =====================================
+      # Install Backend Dependencies
+      # =====================================
+      - name: Install Backend Dependencies
+        run: npm install
+
+      # =====================================
+      # Build Backend
+      # =====================================
+      - name: Build Backend
+        run: npm run build
+
+  frontend-build:
+    name: Frontend Build Verification
+
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+
+      # =====================================
+      # Checkout Repository
+      # =====================================
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # =====================================
+      # Setup Node.js
+      # =====================================
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # =====================================
+      # Install Frontend Dependencies
+      # =====================================
+      - name: Install Frontend Dependencies
+        run: npm install
+
+      # =====================================
+      # Build Frontend
+      # =====================================
+      - name: Build Frontend
+        run: npm run build
+
+  docker-validation:
+    name: Docker Compose Validation
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      # =====================================
+      # Checkout Repository
+      # =====================================
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      # =====================================
+      # Verify Docker Compose File
+      # =====================================
+      - name: Validate Docker Compose
+        run: docker compose config
