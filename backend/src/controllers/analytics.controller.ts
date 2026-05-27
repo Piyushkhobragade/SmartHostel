@@ -152,7 +152,6 @@ export const getForecast = async (req: Request, res: Response) => {
         const movingAverage = last7Days.reduce((sum, rate) => sum + rate, 0) / last7Days.length;
 
         // Generate forecast for next 7 days
-        const forecast = [];
         const lastDate = new Date(historicalData[historicalData.length - 1].date);
         const avgTotalBeds = historicalData[historicalData.length - 1].totalBeds;
 
