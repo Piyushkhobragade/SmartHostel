@@ -47,8 +47,7 @@ jobs:
         with:
           context: ./backend
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/smarthostel-backend:latest
-
+          tags: ghcr.io/piyushkhobragade/smarthostel-backend:latest
       # ======================================
       # Build and Push Frontend Image
       # ======================================
@@ -57,4 +56,4 @@ jobs:
         with:
           context: ./frontend
           push: true
-          tags: ghcr.io/${{ github.repository_owner }}/smarthostel-frontend:latest
+          tags: ghcr.io/piyushkhobragade/smarthostel-frontend:latest
