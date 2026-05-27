@@ -49,3 +49,4 @@ coverage/
 
 # Misc
 .cache/
+minikube-linux-amd64

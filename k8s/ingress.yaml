@@ -1,0 +1,39 @@
+apiVersion: networking.k8s.io/v1
+
+kind: Ingress
+
+metadata:
+  name: smarthostel-ingress
+
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+
+spec:
+
+  ingressClassName: nginx
+
+  rules:
+    - host: smarthostel.local
+
+      http:
+        paths:
+
+          - path: /
+            pathType: Prefix
+
+            backend:
+              service:
+                name: smarthostel-frontend-service
+
+                port:
+                  number: 80
+
+          - path: /api
+            pathType: Prefix
+
+            backend:
+              service:
+                name: smarthostel-backend-service
+
+                port:
+                  number: 80

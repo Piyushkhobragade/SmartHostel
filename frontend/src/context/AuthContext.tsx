@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import { API_BASE_URL } from '../config/constants';
 
 interface User {
     id: string;
@@ -55,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     const login = async (username: string, password: string) => {
         try {
-            const response = await axios.post('http://localhost:3001/api/auth/login', {
+            const response = await axios.post(`${API_BASE_URL}/auth/login`, {
                 username,
                 password
             });

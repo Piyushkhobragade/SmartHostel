@@ -1,6 +1,7 @@
 // SmartHostel Application Constants
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+// Default to relative '/api' so dev proxy or same-origin production setups work.
+export const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 export const ROUTES = {
     HOME: '/',
