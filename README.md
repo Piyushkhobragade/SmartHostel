@@ -1,320 +1,453 @@
-# SmartHostel – Smart Hostel Management System
+# SmartHostel
 
+Production-focused hostel management platform engineered with modern DevOps practices, containerized deployment architecture, CI/CD validation workflows, and operational infrastructure design.
 
-A modern, full-stack web application designed to streamline hostel operations by managing residents, room allocations, mess subscriptions, fee collection, visitor logs, attendance tracking, and maintenance requests.
+SmartHostel began as a traditional academic hostel management system and was later redesigned into a deployment-oriented engineering project focused on infrastructure reliability, runtime consistency, and production-style orchestration patterns.
 
+---
 
 ## Overview
 
-SmartHostel provides a comprehensive solution for hostel administrators and staff to efficiently manage day-to-day operations. Built with a clean, intuitive interface and robust backend, it offers role-based access control, real-time analytics, and seamless dark/light mode support.
+SmartHostel handles common operational workflows required in residential hostel environments while emphasizing realistic deployment engineering and maintainable infrastructure.
+
+Current platform capabilities include:
+
+- Resident onboarding and management
+- Room allocation and occupancy tracking
+- Attendance monitoring
+- Visitor logging
+- Billing and fee tracking
+- Maintenance request workflows
+- Inventory management
+- Mess subscription handling
+- Occupancy analytics and forecasting
+
+The system is structured as a modular containerized platform designed for local orchestration today and cloud-native expansion later.
 
 ---
 
-## Features
+# Architecture
 
-### Core Modules
+```mermaid
+flowchart TD
 
+A[Browser] --> B[Nginx Reverse Proxy]
 
-- **Residents Management** – Register, update, and track student residents with detailed profiles
-- **Room Allocation & Occupancy** – Manage room assignments, capacity, and availability status
-- **Attendance Tracking** – Record daily resident presence with manual and RFID support
-- **Visitor Log** – Track visitor check-ins and check-outs with security details
-- **Maintenance Requests** – Handle hostel complaints and maintenance tasks with status tracking
-- **Fees Management** – Create invoices, record payments, and track outstanding dues
-- **Mess Subscriptions** – Manage meal plans and monthly mess billing for residents
-- **Dashboard & Analytics** – Real-time insights with occupancy trends and key metrics
-- **Assets Management** – Track hostel assets, their status, and maintenance history
+B --> C[React Frontend]
 
-### Security & Access Control
+B --> D[Express Backend API]
 
-- **Role-Based Access Control (RBAC)** – Admin and Staff roles with granular permissions
-- **JWT Authentication** – Secure token-based authentication
-- **Protected Routes** – Frontend and backend route protection
+D --> E[Prisma ORM]
 
-### User Experience
-
-- **Dark/Light Mode** – Seamless theme switching with full component support
-- **Responsive Design** – Mobile-friendly interface with adaptive layouts
-- **Real-time Feedback** – Toast notifications for all user actions
-- **Search & Filters** – Quick data access with advanced filtering options
-
----
-
-
-
-## Tech Stack
-
-### Frontend
-- **React** – Component-based UI library
-- **TypeScript** – Type-safe development
-- **Vite** – Fast build tool and dev server
-- **Tailwind CSS** – Utility-first CSS framework
-- **Axios** – HTTP client for API requests
-- **React Router** – Client-side routing
-- **Lucide React** – Modern icon library
-- **Recharts** – Data visualization for analytics
-- 
-
-### Backend
-- **Node.js** – JavaScript runtime
-- **Express** – Web application framework
-- **TypeScript** – Type-safe server development
-- **Prisma ORM** – Type-safe database client
-- **SQLite** – Lightweight database (development)
-- **JWT** – JSON Web Tokens for authentication
-- **bcrypt** – Password hashing
-
-### Development Tools
-- **ESLint** – Code linting
-- **Nodemon** – Auto-restart dev server
-- **ts-node** – TypeScript execution
-
----
-
-## Project Structure
-
-```
-smart-hostel/
-├── frontend/                 # React frontend application
-│   ├── src/
-│   │   ├── pages/           # Page components (Dashboard, Residents, etc.)
-│   │   ├── components/      # Reusable UI components
-│   │   ├── services/        # API client and service layer
-│   │   ├── context/         # React context providers (Auth, Toast, Theme)
-│   │   └── App.tsx          # Main application component
-│   └── package.json
-│
-├── backend/                  # Express backend API
-│   ├── src/
-│   │   ├── routes/          # API route definitions
-│   │   ├── controllers/     # Request handlers
-│   │   ├── services/        # Business logic layer
-│   │   ├── middleware/      # Auth and validation middleware
-│   │   └── app.ts           # Express app configuration
-│   ├── prisma/
-│   │   └── schema.prisma    # Database schema
-│   └── package.json
-│
-└── docs/                     # Project documentation
-    ├── TEST_PLAN.md         # Manual testing guide
-    └── UPGRADE_GUIDE.md     # Version upgrade instructions
+E --> F[(SQLite Database)]
 ```
 
 ---
 
+# Tech Stack
 
-## Getting Started
+## Frontend
 
-### Prerequisites
-
-- **Node.js** (v16 or higher)
-- **npm** or **yarn**
-- **Git**
-
-### Backend Setup
-
-1. Navigate to the backend directory:
-   ```bash
-   cd backend
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Set up environment variables:
-   ```bash
-   # Create .env file with:
-   DATABASE_URL="file:./dev.db"
-   JWT_SECRET="your-secret-key-here"
-   PORT=3000
-   ```
-
-4. Run database migrations:
-   ```bash
-   npx prisma migrate dev
-   ```
-
-5. (Optional) Seed the database with sample data:
-   ```bash
-   npx ts-node src/scripts/createAdmin.ts
-   ```
-
-6. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-   Backend will run on `http://localhost:3000`
-
-### Frontend Setup
-
-1. Navigate to the frontend directory:
-   ```bash
-   cd frontend
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Start the development server:
-   ```bash
-   npm run dev
-   ```
-
-   Frontend will run on `http://localhost:5173`
-
-### Default Credentials
-
-**Admin Account:**
-- Username: `admin`
-- Password: `Admin@123`
-
-**Staff Account:**
-- Username: `staff`
-- Password: `Staff@123`
-
-> **Security Note:** Change these default credentials immediately in production environments.
+- React 19
+- Vite 7
+- TypeScript
+- TailwindCSS
+- Recharts
+- Lucide React
 
 ---
 
-## Usage Overview
+## Backend
 
-### For Administrators
-
-1. **Login** – Access the system with admin credentials
-2. **Dashboard** – View real-time metrics and analytics
-3. **Manage Residents** – Register new students, update profiles, assign rooms
-4. **Room Management** – Allocate rooms, track occupancy, manage vacancies
-5. **Mess Subscriptions** – Create meal plans, track monthly billing
-6. **Fee Collection** – Generate invoices, record payments, monitor dues
-7. **Attendance** – Mark daily presence, view attendance history
-8. **Visitor Logs** – Register visitors, track check-ins/check-outs
-9. **Maintenance** – Handle requests, update status, track resolutions
-10. **Assets** – Manage hostel assets and maintenance schedules
-
-### For Staff
-
-Staff members have limited access to:
-- Dashboard (view-only)
-- Attendance tracking
-- Visitor management
-- Maintenance requests
+- Node.js
+- Express 5
+- TypeScript
+- Prisma ORM
+- JWT Authentication
+- bcrypt password hashing
 
 ---
 
-## Key Features in Detail
+## Infrastructure & DevOps
 
-### Dashboard Analytics
-- Total residents count
-- Room occupancy percentage
-- Pending maintenance requests
-- Outstanding fee collection
-- Weekly attendance trends (bar chart)
-
-### Mess Management
-- Multiple meal plan options (Standard Veg, Non-Veg, Premium)
-- Monthly subscription tracking
-- Active/inactive status management
-- Resident-wise billing
-
-### Fee Management
-- Invoice generation with due dates
-- Partial and full payment recording
-- Payment method tracking (Cash, Online, UPI, Card)
-- Pending vs. paid status filtering
-
-### Maintenance System
-- Priority levels (Low, Medium, High)
-- Status workflow (Open → In Progress → Resolved)
-- Asset linking for equipment-related issues
-- Category-based filtering
+- Docker
+- Docker Compose
+- Kubernetes
+- GitHub Actions
+- Nginx Reverse Proxy
+- GHCR Container Registry
+- Helm
+- Terraform
 
 ---
 
-## Future Scope
+# Repository Structure
 
-- **Resident Self-Service Portal** – Allow residents to view their profiles, attendance, and fee status
-- **Automated Mess Billing** – Generate monthly mess invoices based on subscription plans
-- **Notification System** – Email/SMS alerts for fee due dates, maintenance updates, and announcements
-- **Advanced Analytics** – ML-based occupancy forecasting and trend analysis
-- **Mobile Application** – Native iOS/Android apps for on-the-go management
-- **Biometric Integration** – Fingerprint/face recognition for attendance and access control
-- **Payment Gateway** – Online fee payment integration with popular payment providers
-
----
-
-## Testing
-
-A comprehensive manual test plan is available in `docs/TEST_PLAN.md`. It covers:
-- Authentication and RBAC
-- CRUD operations for all modules
-- Dark/light mode compatibility
-- Responsive design testing
-- Error handling scenarios
-
----
-
-## Documentation
-
-- **Test Plan** – `docs/TEST_PLAN.md`
-- **Upgrade Guide** – `docs/UPGRADE_GUIDE.md`
-- **Mess Migration** – `backend/MESS_MIGRATION.md`
-- **Architecture** – `docs/ARCHITECTURE.md`
-- **Known Limitations** – `docs/KNOWN_LIMITATIONS.md`
-- **Accessibility & SEO** – `docs/ACCESSIBILITY_SEO_CHECKLIST.md`
-- **Demo Flow** – `docs/DEMO_FLOW.md`
+```text
+.
+├── backend
+│   ├── prisma
+│   ├── src
+│   ├── Dockerfile
+│   └── package.json
+│
+├── frontend
+│   ├── src
+│   ├── nginx.conf
+│   ├── Dockerfile
+│   └── package.json
+│
+├── .github
+│   └── workflows
+│
+├── docker-compose.yml
+├── docker-compose.override.yml
+│
+├── k8s
+├── helm
+├── terraform
+│
+└── docs
+```
 
 ---
 
-## Contributing
+# Infrastructure Engineering
 
-This is a student project developed as part of academic coursework. The codebase follows modular design principles for easy maintenance and extension.
+## Multi-Stage Docker Builds
 
-### Code Organization
-- **Frontend**: Component-based architecture with shared UI components
-- **Backend**: Service-controller pattern with clear separation of concerns
-- **Database**: Prisma ORM for type-safe database operations
-- **API**: RESTful endpoints with consistent naming conventions
+Both frontend and backend services use optimized multi-stage Docker builds to improve runtime efficiency and deployment consistency.
 
----
+Implemented optimizations include:
 
-## License
-
-This project is developed for educational purposes.
-
----
-
-## Author
-
-**Piyush Khobragade**
+- isolated dependency layers
+- deterministic installs
+- minimized runtime image footprint
+- production-only dependencies
+- reduced build context
+- cleaner runtime separation
 
 ---
 
-## Credits
+## Backend Runtime Optimization
 
-Developed as a comprehensive hostel management solution with focus on:
-- Clean, maintainable code
-- Modern UI/UX design
-- Scalable architecture
-- Security best practices
-
----
-
-## Known Issues
-
-- Seed script (`seed.ts`) is currently disabled due to corruption – use `createAdmin.ts` for initial setup
-- Prisma version can be upgraded from 5.10.0 to 7.0.1 (optional)
+```text
+Initial Backend Image Size : 1.81 GB
+Optimized Runtime Size     : 383 MB
+Overall Reduction          : 79%
+```
 
 ---
 
-## Support
+## Runtime Hardening
 
-For issues or questions, please refer to the documentation in the `docs/` directory or check the inline code comments.
+Implemented runtime controls include:
+
+- non-root container execution
+- isolated runtime stages
+- internal service networking
+- environment-driven configuration
+- reduced attack surface
+- dependency separation
 
 ---
 
-**SmartHostel** – Efficient hostel management made simple and easy.
+## Reverse Proxy Networking
+
+Nginx is used as an internal reverse proxy layer to:
+
+- serve frontend static assets
+- internally proxy `/api` requests
+- avoid frontend/backend CORS issues
+- support SPA routing
+- improve network isolation
+- enable gzip compression
+
+---
+
+# CI/CD Pipeline
+
+GitHub Actions workflows enforce automated validation across the project.
+
+Current pipeline stages include:
+
+- TypeScript validation
+- frontend build verification
+- backend build verification
+- Docker image build checks
+- workflow validation
+- runtime consistency validation
+
+The pipeline intentionally fails on validation errors instead of suppressing infrastructure problems.
+
+---
+
+# Kubernetes Deployment
+
+The repository includes Kubernetes manifests for local orchestration testing using Minikube.
+
+Validated components include:
+
+- Deployments
+- Services
+- Secrets
+- environment injection
+- pod lifecycle handling
+- internal service networking
+
+Current Kubernetes maturity is experimental and focused on deployment validation rather than production hosting.
+
+---
+
+# Operational Challenges Solved
+
+## Prisma Schema Drift
+
+One major issue discovered during containerized deployment involved Prisma schema drift where runtime models no longer matched generated Prisma clients.
+
+This surfaced during Docker validation and Kubernetes deployment testing, reinforcing the importance of reproducible builds and strict schema synchronization.
+
+---
+
+## Runtime Environment Injection
+
+Authentication initially failed because `DATABASE_URL` was not correctly injected into Kubernetes runtime environments.
+
+The issue was resolved using:
+
+- Kubernetes Secrets
+- runtime environment variables
+- deployment configuration cleanup
+
+---
+
+## Reverse Proxy API Routing
+
+Frontend authentication failures were traced to incorrect API routing behavior between frontend and backend services.
+
+The issue was resolved through:
+
+- internal Nginx proxying
+- environment normalization
+- runtime endpoint correction
+- service networking cleanup
+
+---
+
+## Kubernetes Image Pull Issues
+
+Local Kubernetes deployment initially encountered:
+
+```text
+ErrImageNeverPull
+```
+
+The issue was resolved using:
+
+- Minikube local image loading
+- corrected image pull policies
+- deployment rollout synchronization
+- runtime image validation
+
+---
+
+# Predictive Analytics
+
+SmartHostel currently includes lightweight occupancy forecasting features using:
+
+- Moving Average models
+- Linear Regression analysis
+
+These are used for occupancy estimation and operational planning.
+
+The project intentionally avoids overstating AI capabilities or integrating unnecessary external LLM tooling.
+
+---
+
+# DevOps Capabilities
+
+| Capability | Status |
+|---|---|
+| Dockerized Architecture | Active |
+| Multi-Stage Builds | Active |
+| GitHub Actions CI/CD | Active |
+| Nginx Reverse Proxy | Active |
+| JWT Authentication | Active |
+| SQLite Persistence | Active |
+| Kubernetes Validation | Experimental |
+| Helm Charts | Scaffolded |
+| Terraform Infrastructure | Scaffolded |
+| GHCR Publishing | Active |
+| Runtime Health Validation | Active |
+
+---
+
+# Local Development
+
+## Clone Repository
+
+```bash
+git clone https://github.com/Piyushkhobragade/SmartHostel.git
+
+cd SmartHostel
+```
+
+---
+
+## Start Using Docker Compose
+
+```bash
+docker compose up --build
+```
+
+Application becomes available at:
+
+```text
+http://localhost
+```
+
+---
+
+# Kubernetes Local Deployment
+
+## Apply Kubernetes Resources
+
+```bash
+kubectl apply -f k8s/
+```
+
+---
+
+## Verify Pods
+
+```bash
+kubectl get pods
+```
+
+---
+
+## Verify Services
+
+```bash
+kubectl get svc
+```
+
+---
+
+# Development Workflow
+
+Development overrides are separated using:
+
+```text
+docker-compose.override.yml
+```
+
+This enables:
+
+- bind-mounted source code
+- hot reload support
+- development-only port exposure
+- isolated production runtime logic
+
+---
+
+# Authentication & Authorization
+
+Authentication is implemented using JWT-based authorization.
+
+Implemented features include:
+
+- bcrypt password hashing
+- protected API routes
+- role-based access control
+- token validation middleware
+- frontend request interception
+- ADMIN authorization flows
+
+---
+
+# Design Decisions
+
+## Why SQLite?
+
+SQLite is intentionally retained because it accurately reflects the current operational maturity of the platform.
+
+Advantages at the current stage include:
+
+- simplified reproducibility
+- lower infrastructure overhead
+- deterministic local deployments
+- reduced operational complexity
+
+PostgreSQL migration is planned for future cloud deployment phases.
+
+---
+
+## Why `node:20-bookworm` Instead of Alpine?
+
+Prisma runtime compatibility issues under Alpine/musl environments caused instability during container validation.
+
+The backend runtime was standardized on:
+
+```text
+node:20-bookworm
+```
+
+to improve:
+
+- OpenSSL compatibility
+- Prisma runtime stability
+- deterministic builds
+- deployment reliability
+
+---
+
+# Future Direction
+
+Planned expansion areas include:
+
+- PostgreSQL migration
+- production Kubernetes orchestration
+- cloud deployment automation
+- centralized observability
+- Prometheus and Grafana integration
+- AI-assisted allocation workflows
+- infrastructure monitoring
+- distributed logging
+- RBAC expansion
+
+---
+
+# Engineering Philosophy
+
+This repository intentionally prioritizes:
+
+- operational clarity
+- realistic infrastructure
+- maintainable deployment architecture
+- deterministic builds
+- incremental modernization
+- reproducible environments
+- infrastructure honesty
+
+over unnecessary complexity or artificial tooling inflation.
+
+---
+
+# Author
+
+Developed and maintained by **Piyush Khobragade**.
+
+SmartHostel is continuously evolving as a hands-on platform engineering and DevOps modernization project focused on practical containerization, deployment workflows, CI/CD enforcement, and infrastructure reliability.
+
+GitHub:
+
+```text
+https://github.com/Piyushkhobragade
+```
+
+---
+
+# License
+
+This project is currently maintained as an academic and infrastructure-engineering showcase platform.
