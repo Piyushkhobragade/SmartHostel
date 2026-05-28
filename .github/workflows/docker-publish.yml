@@ -1,37 +1,45 @@
-name: Publish Docker Images
+name: Publish
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+
+concurrency:
+  group: publish-${{ github.sha }}
+  cancel-in-progress: false
 
 jobs:
 
-  docker:
+  ci:
+    name: CI Gate
+    uses: ./.github/workflows/ci.yml
 
+  publish:
+    name: Build & Push — ${{ matrix.service }}
     runs-on: ubuntu-latest
+    needs: ci
 
     permissions:
       contents: read
       packages: write
 
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - service: backend
+            context: ./backend
+            image: ghcr.io/${{ github.repository_owner }}/smarthostel-backend
+          - service: frontend
+            context: ./frontend
+            image: ghcr.io/${{ github.repository_owner }}/smarthostel-frontend
+
     steps:
+      - uses: actions/checkout@v4
 
-      # ======================================
-      # Checkout Repository
-      # ======================================
-      - name: Checkout Repository
-        uses: actions/checkout@v4
-
-      # ======================================
-      # Setup Docker Buildx
-      # ======================================
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # ======================================
-      # Login to GitHub Container Registry
-      # ======================================
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
@@ -39,21 +47,22 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # ======================================
-      # Build and Push Backend Image
-      # ======================================
-      - name: Build Backend Image
-        uses: docker/build-push-action@v5
+      - name: Resolve image metadata
+        id: meta
+        uses: docker/metadata-action@v5
         with:
-          context: ./backend
-          push: true
-          tags: ghcr.io/piyushkhobragade/smarthostel-backend:latest
-      # ======================================
-      # Build and Push Frontend Image
-      # ======================================
-      - name: Build Frontend Image
-        uses: docker/build-push-action@v5
+          images: ${{ matrix.image }}
+          tags: |
+            type=sha,prefix=sha-,format=short
+            type=ref,event=branch
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
         with:
-          context: ./frontend
+          context: ${{ matrix.context }}
           push: true
-          tags: ghcr.io/piyushkhobragade/smarthostel-frontend:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha,scope=${{ matrix.service }}
+          cache-to: type=gha,scope=${{ matrix.service }},mode=max

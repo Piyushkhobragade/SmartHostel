@@ -1,79 +1,42 @@
-
 services:
 
-  # ==============================
-  # PostgreSQL Database Service
-  # ==============================
-  postgres:
-    image: postgres:16
-    container_name: smarthostel-postgres
-
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: smarthostel
-
-    ports:
-      - "5432:5432"
-
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-
-    restart: unless-stopped
-
-  # ==============================
-  # Redis Cache Service
-  # ==============================
-  redis:
-    image: redis:7
-    container_name: smarthostel-redis
-
-    ports:
-      - "6379:6379"
-
-    restart: unless-stopped
-
-  # ==============================
-  # Backend API Service
-  # ==============================
   backend:
     build:
       context: ./backend
-
+      target: runtime
+    image: smarthostel-backend:local
     container_name: smarthostel-backend
-
-    env_file:
-      - ./backend/.env
-
-    ports:
-      - "5000:3001"
-
-    depends_on:
-      - postgres
-      - redis
-
+    env_file: ./backend/.env
+    volumes:
+      - sqlite_data:/app/data
+    networks:
+      - internal
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000/', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))\""]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
 
-  # ==============================
-  # Frontend Web Application
-  # ==============================
   frontend:
     build:
       context: ./frontend
-
+      target: runtime
+    image: smarthostel-frontend:local
     container_name: smarthostel-frontend
-
     ports:
-      - "3000:3000"
-
+      - "80:80"
+    networks:
+      - internal
     depends_on:
-      - backend
-
+      backend:
+        condition: service_healthy
     restart: unless-stopped
 
+networks:
+  internal:
+    driver: bridge
 
-# ==================================
-# Persistent Docker Volumes
-# ==================================
 volumes:
-  postgres_data:
+  sqlite_data:

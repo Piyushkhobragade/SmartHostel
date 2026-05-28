@@ -1,39 +1,52 @@
-# =========================
-# Build Stage
-# =========================
-FROM node:20-bookworm AS builder
+FROM node:20-slim AS deps
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY package.json package-lock.json ./
 
-RUN apt-get update && apt-get install -y openssl sqlite3
+RUN npm ci --ignore-scripts
 
-RUN npm install
 
-COPY . .
+FROM node:20-slim AS builder
+
+WORKDIR /app
+
+RUN apt-get update -qq && apt-get install -y --no-install-recommends openssl && rm -rf /var/lib/apt/lists/*
+
+COPY package.json package-lock.json ./
+COPY --from=deps /app/node_modules ./node_modules
+COPY prisma ./prisma
+
+RUN npx prisma generate
+
+COPY tsconfig.json ./
+COPY src ./src
 
 RUN npm run build
 
-# =========================
-# Production Stage
-# =========================
-FROM node:20-bookworm
+
+FROM node:20-slim AS runtime
 
 WORKDIR /app
 
 ENV NODE_ENV=production
 
-RUN apt-get update && apt-get install -y openssl sqlite3
+RUN apt-get update -qq \
+    && apt-get install -y --no-install-recommends openssl \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /app/data \
+    && chown -R node:node /app
 
-COPY package*.json ./
+COPY package.json package-lock.json ./
 
-RUN npm install --omit=dev
+RUN npm ci --omit=dev --ignore-scripts
 
-COPY . .
+COPY --from=builder --chown=node:node /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder --chown=node:node /app/dist ./dist
+COPY --chown=node:node prisma ./prisma
 
-COPY --from=builder /app/dist ./dist
+USER node
 
-EXPOSE 3001
+EXPOSE 3000
 
 CMD ["node", "dist/app.js"]

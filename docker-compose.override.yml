@@ -1,0 +1,22 @@
+# Local development overrides — applied automatically by docker compose.
+# Production deployments use docker-compose.yml directly (no override).
+services:
+
+  backend:
+    build:
+      target: builder
+    command: npm run dev
+    env_file: ./backend/.env
+    environment:
+      NODE_ENV: development
+    volumes:
+      - ./backend/src:/app/src:ro
+      - ./backend/prisma:/app/prisma
+    ports:
+      - "3000:3000"
+
+  frontend:
+    environment:
+      NODE_ENV: development
+    ports:
+      - "80:80"

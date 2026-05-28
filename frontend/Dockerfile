@@ -1,29 +1,21 @@
-# =========================
-# Build Stage
-# =========================
-FROM node:20-bookworm AS builder
+FROM node:20-alpine AS builder
 
 WORKDIR /app
 
-COPY package*.json ./
+COPY package.json package-lock.json ./
 
-RUN npm install
+RUN npm ci
 
 COPY . .
 
 RUN npm run build
 
-# =========================
-# Production Stage
-# =========================
-FROM node:20-bookworm
 
-WORKDIR /app
+FROM nginx:1.27-alpine AS runtime
 
-RUN npm install -g serve
+COPY nginx.conf /etc/nginx/nginx.conf
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-COPY --from=builder /app/dist ./dist
+EXPOSE 80
 
-EXPOSE 3000
-
-CMD ["serve", "-s", "dist", "-l", "3000"]
+CMD ["nginx", "-g", "daemon off;"]

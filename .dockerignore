@@ -1,0 +1,15 @@
+.git
+**/node_modules
+**/.env
+**/.env.*
+**/dist
+**/coverage
+**/prisma/*.db
+**/prisma/*.db-journal
+**/*.log
+.DS_Store
+Thumbs.db
+helm
+k8s
+terraform
+docs
