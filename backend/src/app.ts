@@ -13,6 +13,7 @@ import assetRoutes from './routes/asset.routes';
 import maintenanceRoutes from './routes/maintenance.routes';
 import messRoutes from './routes/mess.routes';
 import { verifyToken } from './middleware/auth.middleware';
+import { initializeDatabase } from './utils/dbInit';
 
 dotenv.config();
 
@@ -40,7 +41,16 @@ app.use('/api/analytics', verifyToken, analyticsRoutes);
 app.use('/api/assets', verifyToken, assetRoutes);
 app.use('/api/maintenance', verifyToken, maintenanceRoutes);
 app.use('/api/mess/subscriptions', verifyToken, messRoutes);
+const startServer = async () => {
+    try {
+        await initializeDatabase();
+        app.listen(PORT, () => {
+            console.log(`Server is running on port ${PORT}`);
+        });
+    } catch (err) {
+        console.error('❌ Fatal error during startup:', err);
+        process.exit(1);
+    }
+};
 
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+startServer();
