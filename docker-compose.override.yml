@@ -6,9 +6,11 @@ services:
     build:
       target: builder
     command: npm run dev
-    env_file: ./backend/.env
     environment:
+      DATABASE_URL: ${DATABASE_URL:-file:./prisma/dev.db}
+      JWT_SECRET: ${JWT_SECRET:-smarthostel-default-development-jwt-secret-key-12345}
       NODE_ENV: development
+      PORT: ${PORT:-3000}
     volumes:
       - ./backend/src:/app/src:ro
       - ./backend/prisma:/app/prisma

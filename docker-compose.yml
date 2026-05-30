@@ -6,7 +6,11 @@ services:
       target: runtime
     image: smarthostel-backend:local
     container_name: smarthostel-backend
-    env_file: ./backend/.env
+    environment:
+      DATABASE_URL: ${DATABASE_URL:-file:/app/data/production.db}
+      JWT_SECRET: ${JWT_SECRET:-smarthostel-default-production-jwt-secret-key-12345}
+      NODE_ENV: ${NODE_ENV:-production}
+      PORT: ${PORT:-3000}
     volumes:
       - sqlite_data:/app/data
     networks:

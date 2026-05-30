@@ -16,36 +16,40 @@ export async function initializeDatabase() {
 
     // 1. Ensure .env file exists
     if (!fs.existsSync(envPath)) {
-        console.log('⚠️ [DB-Init] .env file not found. Creating default local configuration...');
-        
-        let defaultEnvContent = '';
-        if (fs.existsSync(envExamplePath)) {
-            // Read from example, but replace the default Docker SQLite URL with a local one
-            const exampleContent = fs.readFileSync(envExamplePath, 'utf8');
-            defaultEnvContent = exampleContent.replace(
-                'DATABASE_URL="file:/app/data/production.db"',
-                'DATABASE_URL="file:./prisma/dev.db"'
-            );
-            // Ensure JWT_SECRET has a fallback if empty or empty string
-            if (!defaultEnvContent.includes('JWT_SECRET=') || defaultEnvContent.includes('JWT_SECRET=""')) {
-                defaultEnvContent = defaultEnvContent.replace(
-                    /JWT_SECRET=.*/,
-                    'JWT_SECRET="smarthostel-default-development-jwt-secret-key-12345"'
+        try {
+            console.log('⚠️ [DB-Init] .env file not found. Creating default local configuration...');
+            
+            let defaultEnvContent = '';
+            if (fs.existsSync(envExamplePath)) {
+                // Read from example, but replace the default Docker SQLite URL with a local one
+                const exampleContent = fs.readFileSync(envExamplePath, 'utf8');
+                defaultEnvContent = exampleContent.replace(
+                    'DATABASE_URL="file:/app/data/production.db"',
+                    'DATABASE_URL="file:./prisma/dev.db"'
                 );
+                // Ensure JWT_SECRET has a fallback if empty or empty string
+                if (!defaultEnvContent.includes('JWT_SECRET=') || defaultEnvContent.includes('JWT_SECRET=""')) {
+                    defaultEnvContent = defaultEnvContent.replace(
+                        /JWT_SECRET=.*/,
+                        'JWT_SECRET="smarthostel-default-development-jwt-secret-key-12345"'
+                    );
+                }
+            } else {
+                // Hardcoded fallback
+                defaultEnvContent = [
+                    '# Runtime environment for SmartHostel backend.',
+                    'DATABASE_URL="file:./prisma/dev.db"',
+                    'JWT_SECRET="smarthostel-default-development-jwt-secret-key-12345"',
+                    'NODE_ENV=development',
+                    'PORT=3000'
+                ].join('\n');
             }
-        } else {
-            // Hardcoded fallback
-            defaultEnvContent = [
-                '# Runtime environment for SmartHostel backend.',
-                'DATABASE_URL="file:./prisma/dev.db"',
-                'JWT_SECRET="smarthostel-default-development-jwt-secret-key-12345"',
-                'NODE_ENV=development',
-                'PORT=3000'
-            ].join('\n');
-        }
 
-        fs.writeFileSync(envPath, defaultEnvContent, 'utf8');
-        console.log('✅ [DB-Init] .env file created successfully with local development defaults.');
+            fs.writeFileSync(envPath, defaultEnvContent, 'utf8');
+            console.log('✅ [DB-Init] .env file created successfully with local development defaults.');
+        } catch (error) {
+            console.warn('⚠️ [DB-Init] Warning: Could not create local .env file (might be a read-only filesystem or container environment):', error);
+        }
     }
 
     // Load environment variables if they haven't been loaded already
