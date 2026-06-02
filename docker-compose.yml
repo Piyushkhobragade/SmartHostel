@@ -1,5 +1,41 @@
 services:
 
+  postgres:
+    image: postgres:16-alpine
+    container_name: smarthostel-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-smarthostel}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-smarthostel_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-smarthosteldb}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-smarthostel} -d ${POSTGRES_DB:-smarthosteldb}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: smarthostel-ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - internal
+    restart: unless-stopped
+    # GPU support (optional - uncomment if you have NVIDIA GPU)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+
   backend:
     build:
       context: ./backend
@@ -7,21 +43,23 @@ services:
     image: smarthostel-backend:local
     container_name: smarthostel-backend
     environment:
-      DATABASE_URL: ${DATABASE_URL:-file:/app/data/production.db}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-smarthostel}:${POSTGRES_PASSWORD:-smarthostel_secret}@postgres:5432/${POSTGRES_DB:-smarthosteldb}
       JWT_SECRET: ${JWT_SECRET:-smarthostel-default-production-jwt-secret-key-12345}
       NODE_ENV: ${NODE_ENV:-production}
       PORT: ${PORT:-3000}
-    volumes:
-      - sqlite_data:/app/data
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-http://ollama:11434}
     networks:
       - internal
+    depends_on:
+      postgres:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "node -e \"require('http').get('http://localhost:3000/', r => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))\""]
       interval: 15s
       timeout: 5s
       retries: 3
-      start_period: 20s
+      start_period: 30s
 
   frontend:
     build:
@@ -43,4 +81,6 @@ networks:
     driver: bridge
 
 volumes:
-  sqlite_data:
+  postgres_data:
+  ollama_data:
+

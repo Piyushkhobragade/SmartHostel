@@ -14,7 +14,18 @@ export const ROUTES = {
     ASSETS: '/assets',
     MAINTENANCE: '/maintenance',
     FEES: '/fees',
-    ANALYTICS: '/analytics'
+    ANALYTICS: '/analytics',
+    // Student portal routes
+    STUDENT_DASHBOARD: '/student/dashboard',
+    STUDENT_ROOM: '/student/room',
+    STUDENT_FEES: '/student/fees',
+    STUDENT_VISITORS: '/student/visitors',
+    STUDENT_KNOWLEDGE: '/student/knowledge',
+    // Admin AI routes
+    COPILOT: '/copilot',
+    DIGITAL_TWIN: '/digital-twin',
+    TIMELINE: '/timeline',
+    KNOWLEDGE_MANAGER: '/knowledge-manager',
 };
 
 export const RESIDENT_STATUS = {

@@ -12,8 +12,11 @@ import analyticsRoutes from './routes/analytics.routes';
 import assetRoutes from './routes/asset.routes';
 import maintenanceRoutes from './routes/maintenance.routes';
 import messRoutes from './routes/mess.routes';
+import studentRoutes from './routes/student.routes';
+import knowledgeRoutes from './routes/knowledge.routes';
 import { verifyToken } from './middleware/auth.middleware';
 import { initializeDatabase } from './utils/dbInit';
+import { seedKnowledgeDocuments } from './services/ai/knowledge.service';
 
 dotenv.config();
 
@@ -41,9 +44,12 @@ app.use('/api/analytics', verifyToken, analyticsRoutes);
 app.use('/api/assets', verifyToken, assetRoutes);
 app.use('/api/maintenance', verifyToken, maintenanceRoutes);
 app.use('/api/mess/subscriptions', verifyToken, messRoutes);
+app.use('/api/student', verifyToken, studentRoutes);
+app.use('/api/knowledge', verifyToken, knowledgeRoutes);
 const startServer = async () => {
     try {
         await initializeDatabase();
+        await seedKnowledgeDocuments();
         app.listen(PORT, () => {
             console.log(`Server is running on port ${PORT}`);
         });

@@ -10,6 +10,7 @@ export interface AuthRequest extends Request {
         id: string;
         username: string;
         role: string;
+        residentId?: string; // Populated for STUDENT accounts
     };
 }
 

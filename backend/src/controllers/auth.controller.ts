@@ -1,10 +1,8 @@
 import { Request, Response } from 'express';
-import { PrismaClient } from '@prisma/client';
+import prisma from '../lib/prisma';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { AuthRequest } from '../middleware/auth.middleware';
-
-const prisma = new PrismaClient();
 
 /**
  * Login Controller
@@ -40,16 +38,19 @@ export const login = async (req: Request, res: Response) => {
             return res.status(401).json({ error: 'Invalid credentials' });
         }
 
-        // Generate JWT token
-        // IMPORTANT: JWT_SECRET must be set in environment variables
+        // Generate JWT token — include residentId for STUDENT accounts
+        const tokenPayload: any = {
+            id: user.id,
+            username: user.username,
+            role: user.role
+        };
+        if (user.role === 'STUDENT' && user.residentId) {
+            tokenPayload.residentId = user.residentId;
+        }
         const token = jwt.sign(
-            {
-                id: user.id,
-                username: user.username,
-                role: user.role
-            },
+            tokenPayload,
             process.env.JWT_SECRET || 'your-secret-key-change-in-production',
-            { expiresIn: '24h' } // Token expires in 24 hours
+            { expiresIn: '24h' }
         );
 
         // Return token and user info (excluding password hash)
@@ -58,7 +59,8 @@ export const login = async (req: Request, res: Response) => {
             user: {
                 id: user.id,
                 username: user.username,
-                role: user.role
+                role: user.role,
+                residentId: user.residentId || undefined
             }
         });
 

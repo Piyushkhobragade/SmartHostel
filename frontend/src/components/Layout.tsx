@@ -16,7 +16,13 @@ import {
     LogOut,
     Bell,
     KeyRound,
-    UtensilsCrossed
+    UtensilsCrossed,
+    Home,
+    BookOpen,
+    Bot,
+    Map,
+    Activity,
+    Zap
 } from 'lucide-react';
 
 export default function Layout() {
@@ -31,7 +37,19 @@ export default function Layout() {
         }
     };
 
-    const navigation = [
+    const isStudent = user?.role === 'STUDENT';
+
+    // Student navigation
+    const studentNavigation = [
+        { name: 'My Hostel', href: '/student/dashboard', icon: Home },
+        { name: 'My Room', href: '/student/room', icon: BedDouble },
+        { name: 'My Fees', href: '/student/fees', icon: Banknote },
+        { name: 'My Visitors', href: '/student/visitors', icon: Users },
+        { name: 'Hostel AI', href: '/knowledge', icon: Bot },
+    ];
+
+    // Admin / Staff navigation
+    const adminNavigation = [
         { name: 'Dashboard', href: '/', icon: LayoutDashboard, roles: ['ADMIN', 'STAFF', 'RESIDENT'] },
         { name: 'Residents', href: '/residents', icon: Users, roles: ['ADMIN'] },
         { name: 'Rooms', href: '/rooms', icon: BedDouble, roles: ['ADMIN'] },
@@ -42,19 +60,25 @@ export default function Layout() {
         { name: 'Fees', href: '/fees', icon: Banknote, roles: ['ADMIN'] },
         { name: 'Mess', href: '/mess', icon: UtensilsCrossed, roles: ['ADMIN'] },
         { name: 'Analytics', href: '/analytics', icon: BarChart3, roles: ['ADMIN'] },
+        // AI features (added progressively as milestones complete)
+        { name: 'AI Copilot', href: '/copilot', icon: Bot, roles: ['ADMIN'] },
+        { name: 'Digital Twin', href: '/digital-twin', icon: Map, roles: ['ADMIN'] },
+        { name: 'Timeline', href: '/timeline', icon: Activity, roles: ['ADMIN', 'STAFF'] },
+        { name: 'Knowledge', href: '/knowledge-manager', icon: BookOpen, roles: ['ADMIN'] },
     ];
 
-    // Filter navigation based on user role
-    const filteredNavigation = navigation.filter(item =>
+    const navigation = isStudent ? studentNavigation : adminNavigation.filter(item =>
         item.roles.includes(user?.role || 'ADMIN')
     );
 
-    const isActive = (path: string) => location.pathname === path;
+    const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
 
     // Get current page title
     const getCurrentPageTitle = () => {
-        const currentRoute = navigation.find(item => item.href === location.pathname);
-        return currentRoute?.name || 'Dashboard';
+        const allNav = [...studentNavigation, ...adminNavigation];
+        const currentRoute = allNav.find(item => item.href === location.pathname ||
+            (item.href !== '/' && location.pathname.startsWith(item.href)));
+        return currentRoute?.name || (isStudent ? 'My Hostel' : 'Dashboard');
     };
 
     return (
@@ -77,17 +101,23 @@ export default function Layout() {
                     <div className="h-16 flex items-center px-6 border-b border-slate-200 dark:border-slate-800 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-900">
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg">
-                                <BedDouble className="w-5 h-5 text-white" />
+                                <Zap className="w-5 h-5 text-white" />
                             </div>
-                            <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                                SmartHostel
-                            </span>
+                            <div>
+                                <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                                    SmartHostel
+                                </span>
+                                <span className="text-xs font-bold text-blue-400 ml-1">X</span>
+                                {isStudent && (
+                                    <p className="text-[10px] text-slate-400 dark:text-slate-500 -mt-0.5">Student Portal</p>
+                                )}
+                            </div>
                         </div>
                     </div>
 
                     {/* Navigation */}
                     <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
-                        {filteredNavigation.map((item) => {
+                        {navigation.map((item) => {
                             const Icon = item.icon;
                             const active = isActive(item.href);
                             return (

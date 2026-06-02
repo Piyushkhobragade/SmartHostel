@@ -109,4 +109,48 @@ export const messAPI = {
     deactivate: (id: string) => api.patch(`/mess/subscriptions/${id}/deactivate`),
 };
 
+// Student Portal API (STUDENT role only — auto-scoped to logged-in student)
+export const studentAPI = {
+    getDashboard: () => api.get('/student/dashboard'),
+    getRoom: () => api.get('/student/room'),
+    getAttendance: (params?: { month?: number; year?: number }) => api.get('/student/attendance', { params }),
+    getFees: () => api.get('/student/fees'),
+    getVisitors: () => api.get('/student/visitors'),
+    createVisitor: (data: any) => api.post('/student/visitors', data),
+    createMaintenance: (data: any) => api.post('/student/maintenance', data),
+};
+
+// Knowledge API
+export const knowledgeAPI = {
+    getAll: () => api.get('/knowledge'),
+    create: (data: any) => api.post('/knowledge', data),
+    update: (id: string, data: any) => api.put(`/knowledge/${id}`, data),
+    delete: (id: string) => api.delete(`/knowledge/${id}`),
+    ask: (question: string) => api.post('/knowledge/ask', { question }),
+};
+
+// Copilot API
+export const copilotAPI = {
+    chat: (message: string, conversationId?: string) => api.post('/copilot/chat', { message, conversationId }),
+    getConversations: () => api.get('/copilot/conversations'),
+    getConversation: (id: string) => api.get(`/copilot/conversations/${id}`),
+    getBriefing: () => api.get('/copilot/briefing'),
+};
+
+// Timeline & Alerts API
+export const timelineAPI = {
+    getEvents: (params?: any) => api.get('/timeline', { params }),
+    getAlerts: (params?: any) => api.get('/alerts', { params }),
+    acknowledgeAlert: (id: string) => api.patch(`/alerts/${id}`, { status: 'ACKNOWLEDGED' }),
+    resolveAlert: (id: string) => api.patch(`/alerts/${id}`, { status: 'RESOLVED' }),
+    dismissAlert: (id: string) => api.patch(`/alerts/${id}`, { status: 'DISMISSED' }),
+};
+
+// Digital Twin API
+export const twinAPI = {
+    getOverview: () => api.get('/twin/overview'),
+    getRoomProfile: (id: string) => api.get(`/twin/room/${id}`),
+    getHeatmap: (type: 'occupancy' | 'maintenance' | 'cost') => api.get(`/twin/heatmap/${type}`),
+};
+
 export default api;

@@ -35,13 +35,13 @@ export async function initializeDatabase() {
                     );
                 }
             } else {
-                // Hardcoded fallback
                 defaultEnvContent = [
-                    '# Runtime environment for SmartHostel backend.',
-                    'DATABASE_URL="file:./prisma/dev.db"',
+                    '# Runtime environment for SmartHostel X backend.',
+                    'DATABASE_URL="postgresql://smarthostel:smarthostel_secret@localhost:5432/smarthosteldb"',
                     'JWT_SECRET="smarthostel-default-development-jwt-secret-key-12345"',
                     'NODE_ENV=development',
-                    'PORT=3000'
+                    'PORT=3000',
+                    'OLLAMA_BASE_URL="http://localhost:11434"'
                 ].join('\n');
             }
 
@@ -52,12 +52,11 @@ export async function initializeDatabase() {
         }
     }
 
-    // Load environment variables if they haven't been loaded already
-    // This ensures process.env.DATABASE_URL is populated
+    // Load environment variables
     dotenv.config({ path: envPath });
 
     if (!process.env.DATABASE_URL) {
-        process.env.DATABASE_URL = 'file:./prisma/dev.db';
+        process.env.DATABASE_URL = 'postgresql://smarthostel:smarthostel_secret@localhost:5432/smarthosteldb';
     }
 
     // 2. Run migrations
@@ -103,6 +102,93 @@ export async function initializeDatabase() {
         }
     } catch (error) {
         console.error('❌ [DB-Init] Error seeding admin user:', error);
+    }
+
+    // 4. Ensure demo Student user exists
+    try {
+        const existingStudent = await prisma.user.findUnique({
+            where: { username: 'student' }
+        });
+
+        if (!existingStudent) {
+            console.log('➕ [DB-Init] Seeding demo student account...');
+
+            // Create a demo resident if none exist
+            let demoResident = await prisma.resident.findFirst({
+                where: { email: 'demo.student@smarthostel.com' }
+            });
+
+            if (!demoResident) {
+                // Find or create a room
+                let demoRoom = await prisma.room.findFirst();
+                if (!demoRoom) {
+                    demoRoom = await prisma.room.create({
+                        data: {
+                            roomNumber: '101',
+                            capacity: 2,
+                            type: 'AC',
+                            status: 'OCCUPIED',
+                            floor: '1',
+                            block: 'A',
+                            currentOccupancy: 1,
+                        }
+                    });
+                }
+
+                demoResident = await prisma.resident.create({
+                    data: {
+                        fullName: 'Demo Student',
+                        email: 'demo.student@smarthostel.com',
+                        phone: '9876543210',
+                        status: 'ACTIVE',
+                        roomId: demoRoom.id,
+                    }
+                });
+
+                // Seed 7 days of attendance
+                const attendanceData: { residentId: string; date: Date; status: string; method: string }[] = [];
+                for (let i = 6; i >= 0; i--) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    d.setHours(0, 0, 0, 0);
+                    attendanceData.push({
+                        residentId: demoResident.id,
+                        date: d,
+                        status: i === 2 ? 'ABSENT' : 'PRESENT',
+                        method: 'MANUAL',
+                    });
+                }
+                await prisma.attendanceLog.createMany({ data: attendanceData });
+
+                // Seed a pending fee invoice
+                const dueDate = new Date();
+                dueDate.setDate(dueDate.getDate() + 7);
+                await prisma.feeInvoice.create({
+                    data: {
+                        residentId: demoResident.id,
+                        amount: 8500,
+                        dueDate,
+                        description: 'Monthly Hostel Fee - June 2026',
+                        status: 'PENDING',
+                    }
+                });
+            }
+
+            const studentPasswordHash = await bcrypt.hash('Student@123', 10);
+            await prisma.user.create({
+                data: {
+                    username: 'student',
+                    passwordHash: studentPasswordHash,
+                    role: 'STUDENT',
+                    residentId: demoResident.id,
+                }
+            });
+            console.log('✅ [DB-Init] Demo student account seeded!');
+            console.log('   Username: student');
+            console.log('   Password: Student@123');
+        }
+    } catch (error) {
+        console.error('❌ [DB-Init] Error seeding student:', error);
     } finally {
         await prisma.$disconnect();
     }
