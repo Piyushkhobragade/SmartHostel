@@ -307,6 +307,9 @@ http://localhost
 ```
 
 ---
+# WEB URL
+
+http://43.205.203.235/
 
 # Kubernetes Local Deployment
 
