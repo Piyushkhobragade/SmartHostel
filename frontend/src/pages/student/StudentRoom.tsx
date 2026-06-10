@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { studentAPI } from '../../services/api';
-import { BedDouble, Users, Wrench, ChevronRight, AlertCircle, CheckCircle, Clock, PlusCircle } from 'lucide-react';
+import { BedDouble, Users, Wrench, ChevronRight, CheckCircle, PlusCircle } from 'lucide-react';
+import Spinner from '../../components/Spinner';
+import StatusBadge, { resolveVariant } from '../../components/widgets/StatusBadge';
+import ScoreRing from '../../components/widgets/ScoreRing';
 
 interface RoomData {
   room: { id: string; roomNumber: string; type: string; status: string; capacity: number; currentOccupancy: number; floor?: string; block?: string } | null;
@@ -8,17 +11,11 @@ interface RoomData {
   maintenance: { id: string; category: string; description: string; status: string; priority: string; createdAt: string }[];
 }
 
-const priorityColor: Record<string, string> = {
-  LOW: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300',
-  MEDIUM: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  HIGH: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  URGENT: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-};
-
-const statusIcon = (status: string) => {
-  if (status === 'RESOLVED') return <CheckCircle className="w-4 h-4 text-green-500" />;
-  if (status === 'IN_PROGRESS') return <Clock className="w-4 h-4 text-blue-500" />;
-  return <AlertCircle className="w-4 h-4 text-amber-500" />;
+const priorityStyle = (priority: string): React.CSSProperties => {
+  if (priority === 'URGENT') return { background: 'rgba(var(--color-danger), 0.12)', color: 'rgb(var(--color-danger))', border: '1px solid rgba(var(--color-danger), 0.30)' };
+  if (priority === 'HIGH')   return { background: 'rgba(var(--color-warning), 0.12)', color: 'rgb(var(--color-warning))', border: '1px solid rgba(var(--color-warning), 0.30)' };
+  if (priority === 'MEDIUM') return { background: 'rgba(var(--color-info), 0.12)', color: 'rgb(var(--color-info))', border: '1px solid rgba(var(--color-info), 0.30)' };
+  return { background: 'rgba(var(--border-color), 0.5)', color: 'rgb(var(--text-muted))', border: '1px solid rgb(var(--border-color))' };
 };
 
 export default function StudentRoom() {
@@ -55,19 +52,15 @@ export default function StudentRoom() {
   };
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <Spinner label="Loading room..." />;
   }
 
   if (!data?.room) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
-          <BedDouble className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-          <p className="text-slate-500">No room assigned yet. Contact hostel management.</p>
+          <BedDouble className="w-12 h-12 mx-auto mb-3" style={{ color: 'rgb(var(--text-muted))' }} />
+          <p className="text-sm" style={{ color: 'rgb(var(--text-secondary))' }}>No room assigned yet. Contact hostel management.</p>
         </div>
       </div>
     );
@@ -80,11 +73,11 @@ export default function StudentRoom() {
     <div className="max-w-4xl mx-auto space-y-6">
       {/* Page Header */}
       <div>
-        <h1 className="text-xl font-bold text-slate-900 dark:text-white">My Room</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Room details and status</p>
+        <h1 className="text-xl font-bold" style={{ color: 'rgb(var(--text-primary))' }}>My Room</h1>
+        <p className="text-sm mt-0.5" style={{ color: 'rgb(var(--text-muted))' }}>Room details and status</p>
       </div>
 
-      {/* Room Card */}
+      {/* Room Card — gradient hero, accent colours intentional */}
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-6 text-white shadow-lg">
         <div className="flex items-start justify-between">
           <div>
@@ -100,10 +93,12 @@ export default function StudentRoom() {
             </div>
           </div>
           <div className="text-right">
-            <div className="w-16 h-16 rounded-full bg-white/20 flex flex-col items-center justify-center">
-              <span className="text-xl font-bold">{room.currentOccupancy}</span>
-              <span className="text-[10px] text-blue-200">of {room.capacity}</span>
-            </div>
+            <ScoreRing
+              score={occupancyPct}
+              label={`${room.currentOccupancy}/${room.capacity}`}
+              color={occupancyPct > 90 ? 'rgb(var(--color-danger))' : occupancyPct >= 60 ? 'rgb(var(--color-success))' : 'rgb(var(--color-warning))'}
+              size={64}
+            />
             <p className="text-xs text-blue-200 mt-1">{occupancyPct}% full</p>
           </div>
         </div>
@@ -111,25 +106,26 @@ export default function StudentRoom() {
 
       <div className="grid md:grid-cols-2 gap-6">
         {/* Roommates */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
+        <div className="rounded-xl p-4" style={{ background: 'rgb(var(--bg-panel))', border: '1px solid rgb(var(--border-color))' }}>
           <div className="flex items-center gap-2 mb-4">
-            <Users className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+            <Users className="w-4 h-4" style={{ color: 'rgb(var(--color-primary))' }} />
+            <h2 className="text-sm font-semibold" style={{ color: 'rgb(var(--text-secondary))' }}>
               Roommates ({roommates.length})
             </h2>
           </div>
           {roommates.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-4">No other residents in this room.</p>
+            <p className="text-sm text-center py-4" style={{ color: 'rgb(var(--text-muted))' }}>No other residents in this room.</p>
           ) : (
             <div className="space-y-3">
               {roommates.map(r => (
                 <div key={r.id} className="flex items-center gap-3">
+                  {/* Avatar gradient — accent colour, acceptable */}
                   <div className="w-9 h-9 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white text-sm font-bold shrink-0">
                     {r.fullName.charAt(0).toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200">{r.fullName}</p>
-                    <p className="text-xs text-slate-400">{r.phone}</p>
+                    <p className="text-sm font-medium" style={{ color: 'rgb(var(--text-primary))' }}>{r.fullName}</p>
+                    <p className="text-xs" style={{ color: 'rgb(var(--text-muted))' }}>{r.phone}</p>
                   </div>
                 </div>
               ))}
@@ -138,17 +134,18 @@ export default function StudentRoom() {
         </div>
 
         {/* Maintenance */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm p-4">
+        <div className="rounded-xl p-4" style={{ background: 'rgb(var(--bg-panel))', border: '1px solid rgb(var(--border-color))' }}>
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Wrench className="w-4 h-4 text-orange-500" />
-              <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+              <h2 className="text-sm font-semibold" style={{ color: 'rgb(var(--text-secondary))' }}>
                 Open Issues ({maintenance.length})
               </h2>
             </div>
             <button
               onClick={() => setShowForm(!showForm)}
-              className="flex items-center gap-1 text-xs font-medium text-blue-600 dark:text-blue-400 hover:underline"
+              className="flex items-center gap-1 text-xs font-medium hover:underline"
+              style={{ color: 'rgb(var(--color-primary))' }}
             >
               <PlusCircle className="w-3.5 h-3.5" />
               Report Issue
@@ -156,17 +153,20 @@ export default function StudentRoom() {
           </div>
 
           {submitted && (
-            <div className="mb-3 p-2 bg-green-50 dark:bg-green-900/20 rounded-lg text-xs text-green-600 dark:text-green-400 flex items-center gap-2">
+            <div
+              className="mb-3 p-2 rounded-lg text-xs flex items-center gap-2"
+              style={{ background: 'rgba(var(--color-success), 0.10)', color: 'rgb(var(--color-success))' }}
+            >
               <CheckCircle className="w-3.5 h-3.5" /> Issue reported successfully!
             </div>
           )}
 
           {showForm && (
-            <form onSubmit={handleSubmitIssue} className="mb-4 p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg space-y-2">
+            <form onSubmit={handleSubmitIssue} className="mb-4 p-3 rounded-lg space-y-2" style={{ background: 'rgb(var(--bg-app))' }}>
               <select
                 value={form.category}
                 onChange={e => setForm({ ...form, category: e.target.value })}
-                className="w-full text-sm border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
+                className="w-full text-sm input-field"
               >
                 {['Plumbing', 'Electrical', 'Furniture', 'Cleaning', 'Internet', 'AC', 'Other'].map(c => (
                   <option key={c}>{c}</option>
@@ -178,13 +178,13 @@ export default function StudentRoom() {
                 placeholder="Describe the issue..."
                 required
                 rows={2}
-                className="w-full text-sm border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 resize-none"
+                className="w-full text-sm input-field resize-none"
               />
               <div className="flex gap-2">
                 <select
                   value={form.priority}
                   onChange={e => setForm({ ...form, priority: e.target.value })}
-                  className="flex-1 text-sm border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-2 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
+                  className="flex-1 text-sm input-field"
                 >
                   {['LOW', 'MEDIUM', 'HIGH', 'URGENT'].map(p => <option key={p}>{p}</option>)}
                 </select>
@@ -200,22 +200,32 @@ export default function StudentRoom() {
           )}
 
           {maintenance.length === 0 ? (
-            <p className="text-sm text-slate-400 text-center py-4">No open issues. All good! ✓</p>
+            <p className="text-sm text-center py-4" style={{ color: 'rgb(var(--text-muted))' }}>No open issues. All good! ✓</p>
           ) : (
             <div className="space-y-2">
               {maintenance.map(m => (
-                <div key={m.id} className="flex items-start gap-2 py-2 border-b border-slate-100 dark:border-slate-700 last:border-0">
-                  {statusIcon(m.status)}
+                <div
+                  key={m.id}
+                  className="flex items-start gap-2 py-2 last:border-0"
+                  style={{ borderBottom: '1px solid rgb(var(--border-color))' }}
+                >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{m.category}</span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${priorityColor[m.priority] || priorityColor.MEDIUM}`}>
+                      <span className="text-sm font-medium" style={{ color: 'rgb(var(--text-primary))' }}>{m.category}</span>
+                      <span
+                        className="text-[10px] px-2 py-0.5 rounded-full font-medium"
+                        style={priorityStyle(m.priority)}
+                      >
                         {m.priority}
                       </span>
+                      <StatusBadge label={m.status} variant={resolveVariant(m.status)} />
                     </div>
-                    <p className="text-xs text-slate-500 dark:text-slate-400 truncate mt-0.5">{m.description}</p>
+                    <p className="text-xs truncate mt-0.5" style={{ color: 'rgb(var(--text-secondary))' }}>{m.description}</p>
+                    <p className="text-[10px] mt-0.5" style={{ color: 'rgb(var(--text-muted))' }}>
+                      Opened {Math.max(0, Math.floor((Date.now() - new Date(m.createdAt).getTime()) / 86400000))} days ago
+                    </p>
                   </div>
-                  <ChevronRight className="w-3 h-3 text-slate-300 shrink-0 mt-1" />
+                  <ChevronRight className="w-3 h-3 shrink-0 mt-1" style={{ color: 'rgb(var(--text-muted))' }} />
                 </div>
               ))}
             </div>

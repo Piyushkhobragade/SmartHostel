@@ -9,8 +9,7 @@
   <script>
     // Apply dark mode immediately to prevent flash
     (function () {
-      const theme = localStorage.getItem('theme') ||
-        (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+      const theme = 'dark';
       document.documentElement.classList.add(theme);
     })();
   </script>

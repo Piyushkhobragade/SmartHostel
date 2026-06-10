@@ -1,7 +1,12 @@
-import type { ReactNode } from 'react';
+import type { ComponentType, ReactNode } from 'react';
+
+/**
+ * EmptyState — canonical empty state using CSS variable tokens.
+ * No hardcoded Tailwind colours.
+ */
 
 interface EmptyStateProps {
-    icon: React.ComponentType<{ className?: string }>;
+    icon: ComponentType<{ className?: string; style?: React.CSSProperties }>;
     title: string;
     description: string;
     action?: ReactNode;
@@ -10,13 +15,25 @@ interface EmptyStateProps {
 export default function EmptyState({ icon: Icon, title, description, action }: EmptyStateProps) {
     return (
         <div className="flex flex-col items-center justify-center py-12 px-4 text-center">
-            <div className="w-16 h-16 rounded-full bg-gray-100 dark:bg-slate-800 flex items-center justify-center mb-4">
-                <Icon className="w-8 h-8 text-gray-400 dark:text-gray-500" />
+            <div
+                className="w-14 h-14 rounded-full flex items-center justify-center mb-4"
+                style={{ background: 'rgb(var(--bg-app))' }}
+            >
+                <Icon
+                    className="w-7 h-7"
+                    style={{ color: 'rgb(var(--text-muted))' }}
+                />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-1">
+            <h3
+                className="text-base font-semibold mb-1"
+                style={{ color: 'rgb(var(--text-primary))' }}
+            >
                 {title}
             </h3>
-            <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 max-w-sm">
+            <p
+                className="text-sm mb-4 max-w-xs"
+                style={{ color: 'rgb(var(--text-muted))' }}
+            >
                 {description}
             </p>
             {action && <div>{action}</div>}

@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { studentAPI } from '../../services/api';
-import { Banknote, CheckCircle, Clock, AlertCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import { Banknote, CheckCircle, ChevronDown, ChevronUp } from 'lucide-react';
+import Spinner from '../../components/Spinner';
+import StatusBadge, { resolveVariant } from '../../components/widgets/StatusBadge';
+import ProgressBar from '../../components/widgets/ProgressBar';
+import EmptyState from '../../components/ui/EmptyState';
 
 interface Invoice {
   id: string;
@@ -12,75 +16,121 @@ interface Invoice {
   payments: { id: string; amount: number; paidAt: string; method: string }[];
 }
 
-const statusConfig: Record<string, { label: string; icon: React.ReactNode; className: string }> = {
-  PENDING: { label: 'Pending', icon: <Clock className="w-3.5 h-3.5" />, className: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' },
-  PAID: { label: 'Paid', icon: <CheckCircle className="w-3.5 h-3.5" />, className: 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' },
-  OVERDUE: { label: 'Overdue', icon: <AlertCircle className="w-3.5 h-3.5" />, className: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
-  PARTIAL: { label: 'Partial', icon: <Clock className="w-3.5 h-3.5" />, className: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
-};
-
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 function InvoiceRow({ invoice }: { invoice: Invoice }) {
   const [expanded, setExpanded] = useState(false);
-  const config = statusConfig[invoice.status] || statusConfig.PENDING;
   const totalPaid = invoice.payments.reduce((s, p) => s + p.amount, 0);
   const remaining = invoice.amount - totalPaid;
+  const payPct = Math.min(Math.round((totalPaid / invoice.amount) * 100), 100);
 
   return (
-    <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+    <div
+      className="rounded-xl overflow-hidden"
+      style={{ border: '1px solid rgb(var(--border-color))' }}
+    >
       <button
         onClick={() => setExpanded(!expanded)}
-        className="w-full flex items-center gap-4 p-4 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left"
+        className="w-full flex items-center gap-4 p-4 transition-colors text-left"
+        style={{ background: 'rgb(var(--bg-panel))' }}
       >
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-indigo-600 flex items-center justify-center text-white shrink-0">
           <Banknote className="w-5 h-5" />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 truncate">{invoice.description}</p>
-          <p className="text-xs text-slate-400 mt-0.5">Due: {formatDate(invoice.dueDate)} · Issued: {formatDate(invoice.issuedAt)}</p>
+          <p
+            className="text-sm font-semibold truncate"
+            style={{ color: 'rgb(var(--text-primary))' }}
+          >
+            {invoice.description}
+          </p>
+          <p
+            className="text-xs mt-0.5"
+            style={{ color: 'rgb(var(--text-muted))' }}
+          >
+            Due: {formatDate(invoice.dueDate)} · Issued: {formatDate(invoice.issuedAt)}
+          </p>
         </div>
         <div className="text-right shrink-0">
-          <p className="text-lg font-bold text-slate-900 dark:text-white">₹{invoice.amount.toLocaleString()}</p>
-          <span className={`inline-flex items-center gap-1 text-[10px] font-medium px-2 py-0.5 rounded-full ${config.className}`}>
-            {config.icon} {config.label}
-          </span>
+          <p
+            className="text-lg font-bold"
+            style={{ color: 'rgb(var(--text-primary))' }}
+          >
+            ₹{invoice.amount.toLocaleString()}
+          </p>
+          <StatusBadge label={invoice.status} variant={resolveVariant(invoice.status)} />
         </div>
-        {expanded ? <ChevronUp className="w-4 h-4 text-slate-400 shrink-0" /> : <ChevronDown className="w-4 h-4 text-slate-400 shrink-0" />}
+        {expanded
+          ? <ChevronUp className="w-4 h-4 shrink-0" style={{ color: 'rgb(var(--text-muted))' }} />
+          : <ChevronDown className="w-4 h-4 shrink-0" style={{ color: 'rgb(var(--text-muted))' }} />
+        }
       </button>
 
       {expanded && (
-        <div className="border-t border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4">
+        <div
+          className="border-t p-4"
+          style={{ borderColor: 'rgb(var(--border-color))', background: 'rgb(var(--bg-app))' }}
+        >
           {/* Payment progress bar */}
           {invoice.payments.length > 0 && (
             <div className="mb-3">
-              <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mb-1">
+              <div
+                className="flex justify-between text-xs mb-1"
+                style={{ color: 'rgb(var(--text-muted))' }}
+              >
                 <span>Paid: ₹{totalPaid.toLocaleString()}</span>
                 <span>Remaining: ₹{remaining.toLocaleString()}</span>
               </div>
-              <div className="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-green-500 to-emerald-400 rounded-full transition-all"
-                  style={{ width: `${Math.min((totalPaid / invoice.amount) * 100, 100)}%` }}
-                />
-              </div>
+              <ProgressBar
+                pct={payPct}
+                color="rgb(var(--color-success))"
+                height={6}
+                showLabel={false}
+              />
             </div>
           )}
 
           {invoice.payments.length === 0 ? (
-            <p className="text-xs text-slate-400 text-center py-2">No payments recorded yet.</p>
+            <p
+              className="text-xs text-center py-2"
+              style={{ color: 'rgb(var(--text-muted))' }}
+            >
+              No payments recorded yet.
+            </p>
           ) : (
             <div className="space-y-2">
-              <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-2">Payment History</p>
+              <p
+                className="text-xs font-semibold uppercase tracking-wide mb-2"
+                style={{ color: 'rgb(var(--text-muted))' }}
+              >
+                Payment History
+              </p>
               {invoice.payments.map(p => (
-                <div key={p.id} className="flex items-center justify-between py-1.5 border-b border-slate-100 dark:border-slate-700 last:border-0">
+                <div
+                  key={p.id}
+                  className="flex items-center justify-between py-1.5 border-b last:border-0"
+                  style={{ borderColor: 'rgb(var(--border-color))' }}
+                >
                   <div>
-                    <p className="text-sm font-medium text-slate-800 dark:text-slate-200">₹{p.amount.toLocaleString()}</p>
-                    <p className="text-xs text-slate-400">{p.method} · {formatDate(p.paidAt)}</p>
+                    <p
+                      className="text-sm font-medium"
+                      style={{ color: 'rgb(var(--text-primary))' }}
+                    >
+                      ₹{p.amount.toLocaleString()}
+                    </p>
+                    <p
+                      className="text-xs"
+                      style={{ color: 'rgb(var(--text-muted))' }}
+                    >
+                      {p.method} · {formatDate(p.paidAt)}
+                    </p>
                   </div>
-                  <CheckCircle className="w-4 h-4 text-green-500" />
+                  <CheckCircle
+                    className="w-4 h-4"
+                    style={{ color: 'rgb(var(--color-success))' }}
+                  />
                 </div>
               ))}
             </div>
@@ -102,11 +152,7 @@ export default function StudentFees() {
   }, []);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
+    return <Spinner label="Loading fees..." />;
   }
 
   const invoices = data?.invoices || [];
@@ -118,28 +164,85 @@ export default function StudentFees() {
     <div className="max-w-3xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-xl font-bold text-slate-900 dark:text-white">My Fees</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">Your invoices and payment history</p>
+        <h1
+          className="text-xl font-bold"
+          style={{ color: 'rgb(var(--text-primary))' }}
+        >
+          My Fees
+        </h1>
+        <p
+          className="text-sm mt-0.5"
+          style={{ color: 'rgb(var(--text-muted))' }}
+        >
+          Your invoices and payment history
+        </p>
       </div>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 gap-4">
-        <div className="bg-gradient-to-br from-amber-500 to-orange-600 rounded-xl p-4 text-white shadow-md">
-          <p className="text-amber-100 text-xs font-medium">Outstanding</p>
-          <p className="text-3xl font-bold mt-1">₹{summary.totalOwed.toLocaleString()}</p>
-          <p className="text-amber-200 text-xs mt-1">{pendingInvoices.length} invoice{pendingInvoices.length !== 1 ? 's' : ''} pending</p>
+        {/* Outstanding */}
+        <div
+          className="rounded-xl p-4"
+          style={{
+            background: 'rgba(var(--color-warning), 0.10)',
+            border: '1px solid rgba(var(--color-warning), 0.30)',
+          }}
+        >
+          <p
+            className="text-xs font-medium"
+            style={{ color: 'rgb(var(--color-warning))' }}
+          >
+            Outstanding
+          </p>
+          <p
+            className="text-3xl font-bold mt-1"
+            style={{ color: 'rgb(var(--text-primary))' }}
+          >
+            ₹{summary.totalOwed.toLocaleString()}
+          </p>
+          <p
+            className="text-xs mt-1"
+            style={{ color: 'rgb(var(--text-muted))' }}
+          >
+            {pendingInvoices.length} invoice{pendingInvoices.length !== 1 ? 's' : ''} pending
+          </p>
         </div>
-        <div className="bg-gradient-to-br from-green-500 to-emerald-600 rounded-xl p-4 text-white shadow-md">
-          <p className="text-green-100 text-xs font-medium">Total Paid</p>
-          <p className="text-3xl font-bold mt-1">₹{summary.totalPaid.toLocaleString()}</p>
-          <p className="text-green-200 text-xs mt-1">{paidInvoices.length} invoice{paidInvoices.length !== 1 ? 's' : ''} cleared</p>
+        {/* Total Paid */}
+        <div
+          className="rounded-xl p-4"
+          style={{
+            background: 'rgba(var(--color-success), 0.10)',
+            border: '1px solid rgba(var(--color-success), 0.30)',
+          }}
+        >
+          <p
+            className="text-xs font-medium"
+            style={{ color: 'rgb(var(--color-success))' }}
+          >
+            Total Paid
+          </p>
+          <p
+            className="text-3xl font-bold mt-1"
+            style={{ color: 'rgb(var(--text-primary))' }}
+          >
+            ₹{summary.totalPaid.toLocaleString()}
+          </p>
+          <p
+            className="text-xs mt-1"
+            style={{ color: 'rgb(var(--text-muted))' }}
+          >
+            {paidInvoices.length} invoice{paidInvoices.length !== 1 ? 's' : ''} cleared
+          </p>
         </div>
       </div>
 
       {/* Pending Invoices */}
       {pendingInvoices.length > 0 && (
         <div>
-          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+          <h2
+            className="text-sm font-semibold mb-3"
+            style={{ color: 'rgb(var(--text-secondary))' }}
+          >
             Pending / Due ({pendingInvoices.length})
           </h2>
           <div className="space-y-3">
@@ -151,7 +254,10 @@ export default function StudentFees() {
       {/* Paid Invoices */}
       {paidInvoices.length > 0 && (
         <div>
-          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+          <h2
+            className="text-sm font-semibold mb-3"
+            style={{ color: 'rgb(var(--text-secondary))' }}
+          >
             Paid ({paidInvoices.length})
           </h2>
           <div className="space-y-3">
@@ -161,10 +267,11 @@ export default function StudentFees() {
       )}
 
       {invoices.length === 0 && (
-        <div className="text-center py-16">
-          <Banknote className="w-12 h-12 text-slate-200 dark:text-slate-700 mx-auto mb-3" />
-          <p className="text-slate-500 dark:text-slate-400">No invoices found.</p>
-        </div>
+        <EmptyState
+          icon={Banknote}
+          title="No invoices found"
+          description="Your fee invoices will appear here."
+        />
       )}
     </div>
   );

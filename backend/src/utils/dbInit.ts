@@ -59,19 +59,17 @@ export async function initializeDatabase() {
         process.env.DATABASE_URL = 'postgresql://smarthostel:smarthostel_secret@localhost:5432/smarthosteldb';
     }
 
-    // 2. Run migrations
+    // 2. Sync schema with db push (dev mode — no migration history needed)
     try {
-        console.log('⚙️ [DB-Init] Verifying database tables and applying migrations...');
-        // We use npx prisma migrate deploy to apply pending migrations safely without interactive prompts
-        execSync('npx prisma migrate deploy', {
+        console.log('⚙️ [DB-Init] Syncing database schema...');
+        execSync('npx prisma db push --accept-data-loss --skip-generate', {
             cwd: backendDir,
-            stdio: 'inherit',
+            stdio: 'pipe',
             env: { ...process.env }
         });
-        console.log('✅ [DB-Init] Database migrations applied successfully.');
+        console.log('✅ [DB-Init] Schema synced.');
     } catch (error) {
-        console.error('❌ [DB-Init] Error applying database migrations:', error);
-        console.log('⚠️ [DB-Init] Attempting to continue startup...');
+        console.warn('⚠️ [DB-Init] Schema sync warning (non-fatal):', (error as any).stderr?.toString().slice(0, 200));
     }
 
     // 3. Ensure Admin user exists

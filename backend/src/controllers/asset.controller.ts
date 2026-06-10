@@ -1,27 +1,13 @@
 import { Request, Response } from 'express';
-import prisma from '../lib/prisma';
+import { assetService } from '../services/asset.service';
 
-// Get all assets
 export const getAssets = async (req: Request, res: Response) => {
     try {
         const { category, status } = req.query;
-        const where: any = {};
-
-        if (category) {
-            where.category = category as string;
-        }
-
-        if (status) {
-            where.status = status as string;
-        }
-
-        const assets = await prisma.asset.findMany({
-            where,
-            orderBy: {
-                createdAt: 'desc'
-            }
+        const assets = await assetService.getAssets({
+            category: category as string,
+            status: status as string
         });
-
         res.json(assets);
     } catch (error) {
         console.error('Failed to fetch assets:', error);
@@ -29,21 +15,9 @@ export const getAssets = async (req: Request, res: Response) => {
     }
 };
 
-// Create asset
 export const createAsset = async (req: Request, res: Response) => {
     try {
-        const { name, category, status, location, purchasedAt } = req.body;
-
-        const asset = await prisma.asset.create({
-            data: {
-                name,
-                category,
-                status,
-                location,
-                purchasedAt: purchasedAt ? new Date(purchasedAt) : null
-            }
-        });
-
+        const asset = await assetService.createAsset(req.body);
         res.json(asset);
     } catch (error) {
         console.error('Failed to create asset:', error);
@@ -51,23 +25,10 @@ export const createAsset = async (req: Request, res: Response) => {
     }
 };
 
-// Update asset
 export const updateAsset = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { name, category, status, location, purchasedAt } = req.body;
-
-        const asset = await prisma.asset.update({
-            where: { id },
-            data: {
-                name,
-                category,
-                status,
-                location,
-                purchasedAt: purchasedAt ? new Date(purchasedAt) : null
-            }
-        });
-
+        const asset = await assetService.updateAsset(id, req.body);
         res.json(asset);
     } catch (error) {
         console.error('Failed to update asset:', error);
@@ -75,15 +36,10 @@ export const updateAsset = async (req: Request, res: Response) => {
     }
 };
 
-// Delete asset
 export const deleteAsset = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-
-        await prisma.asset.delete({
-            where: { id }
-        });
-
+        await assetService.deleteAsset(id);
         res.json({ message: 'Asset deleted successfully' });
     } catch (error) {
         console.error('Failed to delete asset:', error);

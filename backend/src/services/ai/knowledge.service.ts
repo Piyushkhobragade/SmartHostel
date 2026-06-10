@@ -1,5 +1,7 @@
 import prisma from '../../lib/prisma';
 import { chat, OllamaMessage } from './ollama';
+import { sanitizeInput, budgetContext, validateResponse } from '../../utils/promptSecurity';
+import { logger } from '../../lib/logger';
 
 /**
  * Knowledge AI Service
@@ -82,8 +84,11 @@ async function searchDocuments(question: string, limit = 5) {
  * Main Q&A function — answers a question using the knowledge base + Qwen3.
  */
 export async function answerQuestion(question: string): Promise<KnowledgeAnswer> {
-    // 1. Find relevant documents
-    const docs = await searchDocuments(question);
+    // 0. Sanitize input (Phase 7B: injection protection + length limit)
+    const safeQuestion = sanitizeInput(question, { maxChars: 1_000, context: 'knowledge question' });
+
+    // 1. Find relevant documents using the sanitized question
+    const docs = await searchDocuments(safeQuestion);
 
     if (docs.length === 0) {
         return {
@@ -93,22 +98,26 @@ export async function answerQuestion(question: string): Promise<KnowledgeAnswer>
         };
     }
 
-    // 2. Build context block from matching documents
-    const contextBlock = docs.map(doc =>
+    // 2. Build context block from matching documents and apply budget
+    const rawContextBlock = docs.map(doc =>
         `--- Document: "${doc.title}" [Category: ${doc.category}] ---\n${doc.content}`
     ).join('\n\n');
+    const contextBlock = budgetContext(rawContextBlock);
 
     // 3. Build the conversation for Qwen3
     const messages: OllamaMessage[] = [
         { role: 'system', content: SYSTEM_PROMPT },
         {
             role: 'user',
-            content: `Here are the relevant hostel knowledge documents:\n\n${contextBlock}\n\n---\n\nQuestion: ${question}`
+            content: `Here are the relevant hostel knowledge documents:\n\n${contextBlock}\n\n---\n\nQuestion: ${safeQuestion}`
         }
     ];
 
-    // 4. Call Qwen3 via Ollama
-    const answer = await chat(messages, { temperature: 0.2 }); // Low temp for factual answers
+    // 4. Call Qwen3 via Ollama (low temperature + short response cap for factual answers)
+    const rawAnswer = await chat(messages, { temperature: 0.2, numPredict: 400 });
+    const answer = validateResponse(rawAnswer, {
+        fallback: "I don't have information about this. Please contact the hostel office or warden directly.",
+    });
 
     // 5. Determine confidence based on whether Ollama said it doesn't know
     const noMatchPhrases = ["don't have information", "not in the provided", "cannot find", "no information"];
@@ -127,9 +136,9 @@ export async function answerQuestion(question: string): Promise<KnowledgeAnswer>
  */
 export async function seedKnowledgeDocuments() {
     const count = await prisma.knowledgeDocument.count();
-    if (count > 0) return; // Already seeded
 
-    const documents = [
+    // Original 12 core documents
+    const coreDocuments = [
         {
             title: 'Visitor Policy',
             category: 'RULES',
@@ -384,6 +393,168 @@ Important Notes:
         },
     ];
 
-    await prisma.knowledgeDocument.createMany({ data: documents });
-    console.log(`✅ [Knowledge] Seeded ${documents.length} knowledge documents.`);
+    // 5 additional student-facing documents added in Phase 7D-1
+    const additionalDocuments = [
+        {
+            title: 'Attendance Policy',
+            category: 'POLICY',
+            tags: 'attendance,absent,present,leave,penalty,percentage,minimum,shortage',
+            content: `ATTENDANCE POLICY - SmartHostel X
+
+Minimum Attendance Requirement:
+- Students are required to maintain a minimum of 75% attendance per month.
+- Attendance below 75% may result in a written warning from the warden.
+- Attendance below 60% for 2 consecutive months may result in a hostel allotment review.
+
+How Attendance is Recorded:
+- Attendance is marked daily by hostel staff (manual rounds or biometric).
+- Statuses: PRESENT, ABSENT, LEAVE
+- Approved leave days are marked LEAVE and do NOT count as absences.
+
+Leave and Attendance:
+- Approved leave: Marked as LEAVE — does not reduce attendance percentage.
+- Unapproved absence: Marked as ABSENT — reduces attendance percentage.
+- You can view your attendance record in the Student Portal under My Attendance.
+
+Escalation:
+- First warning: Written notice when attendance drops below 75%.
+- Second warning: Parent/guardian notification.
+- Third strike: Review of hostel allotment.`,
+        },
+        {
+            title: 'Departure and Checkout Procedure',
+            category: 'PROCEDURE',
+            tags: 'checkout,departure,vacate,leave hostel,end of year,semester end,move out',
+            content: `DEPARTURE AND CHECKOUT PROCEDURE - SmartHostel X
+
+When to Checkout:
+- At the end of the academic year or when vacating the hostel permanently.
+- During semester breaks if leaving for more than 30 days.
+
+Checkout Steps:
+1. Notify the warden's office at least 7 days before departure.
+2. Settle all pending fee invoices (no checkout will be processed with outstanding dues).
+3. Return all hostel-issued items (room key, ID card, linen if provided).
+4. Allow a room inspection by hostel staff.
+5. Any damage to the room will be charged before checkout is cleared.
+6. Collect your Room Clearance Certificate from the warden's office.
+7. Return Wi-Fi credentials to the hostel office.
+
+Refundable Deposits:
+- Security deposit (if applicable) is refunded within 30 days of clearance, provided no damages or dues.
+
+Important Notes:
+- Do not leave without completing the checkout process.
+- Abandoned belongings will be disposed of after 15 days.
+- Your hostel email/portal access will be deactivated after checkout.`,
+        },
+        {
+            title: 'Mess Subscription Management',
+            category: 'PROCEDURE',
+            tags: 'mess subscription,meal plan,pause mess,stop mess,resume mess,mess off,meal subscription',
+            content: `MESS SUBSCRIPTION MANAGEMENT - SmartHostel X
+
+Mess Plans Available:
+- Full Board: All meals (Breakfast + Lunch + Snacks + Dinner)
+- Partial Board: Dinner only or Lunch + Dinner
+- No Mess: Opt out of mess (you arrange your own meals)
+
+How to Manage Your Subscription:
+1. Log in to the Student Portal.
+2. Navigate to "My Profile" or contact the warden's office.
+3. Request plan change at least 3 days in advance.
+
+Pausing Mess During Leave:
+- If going on leave for more than 3 consecutive days, inform the mess supervisor in advance.
+- Mess pausing requests must be made at least 24 hours before departure.
+- Short absences (1-2 days) cannot be paused.
+
+Fee Adjustment:
+- Mess charges are prorated for approved long-term pauses (7+ consecutive days).
+- Short pauses do not qualify for fee adjustment.
+
+Complaints and Changes:
+- Food quality complaints: Submit through Student Portal or directly to mess supervisor.
+- Plan change requests: Contact the warden's office at the beginning of each month.`,
+        },
+        {
+            title: 'Student Portal Guide',
+            category: 'FAQ',
+            tags: 'portal,student portal,how to use,login,features,navigate,guide,app',
+            content: `STUDENT PORTAL GUIDE - SmartHostel X
+
+What is the Student Portal?
+The Student Portal is your personal dashboard for managing your hostel life at SmartHostel X. It gives you real-time access to your data and lets you raise requests without visiting the office.
+
+How to Access:
+- Web: Open your browser and go to the SmartHostel X URL provided by the hostel.
+- Login: Use the username and password given to you during check-in.
+- Forgot Password: Click "Forgot Password" on the login page and use your registered reset code.
+
+Key Features:
+1. My Dashboard — Overview of your room, attendance, next fee due, recent visitors.
+2. My Attendance — View your attendance history, monthly summary, and attendance percentage.
+3. My Fees — See all your invoices, payment history, and total outstanding amount.
+4. My Room — Room details, roommate information, and open maintenance requests.
+5. My Visitors — View visitor history and pre-register upcoming visitors.
+6. AI Assistant — Ask questions about hostel rules, policies, and your personal data.
+
+Tips:
+- Check the portal before visiting the warden's office — most information is available here.
+- Pre-register your visitors the day before their visit to speed up gate entry.
+- Report maintenance issues through the portal for faster resolution tracking.
+
+Support:
+- For login issues: Contact the hostel office.
+- For technical issues: Email hostel@smarthostelx.edu.in`,
+        },
+        {
+            title: 'Hostel Admission and Check-in',
+            category: 'PROCEDURE',
+            tags: 'admission,check-in,new student,first day,arrival,allotment,joining',
+            content: `HOSTEL ADMISSION AND CHECK-IN PROCEDURE - SmartHostel X
+
+Eligibility:
+- Admission is open to students enrolled in the affiliated institution.
+- Priority is given to students from outside the city / outstation students.
+- Application must be submitted before the academic year begins.
+
+Documents Required at Check-in:
+1. Original and photocopy of College Admission Letter.
+2. Government photo ID (Aadhaar Card, PAN, Passport, or Driving License).
+3. 4 passport-size photographs.
+4. Parent/Guardian contact details and signed consent form.
+5. Medical fitness certificate.
+6. Fee payment receipt (first month's fees must be paid before check-in).
+
+Check-in Steps:
+1. Report to the Warden's Office on your allotted date.
+2. Submit all documents and get verified.
+3. Collect your room key and hostel ID card.
+4. Collect your Wi-Fi login credentials.
+5. Receive Student Portal login (username + temporary password).
+6. Complete room inspection form (note any existing damage immediately).
+7. Attend the mandatory orientation session.
+
+Important First-Day Tips:
+- Note the room's existing condition on your inspection form to avoid future disputes.
+- Save all emergency contact numbers.
+- Download and log in to the Student Portal immediately.
+- Familiarise yourself with mess timings and gate curfew rules.`,
+        },
+    ];
+
+    if (count === 0) {
+        // Fresh environment — seed all 17 documents at once
+        await prisma.knowledgeDocument.createMany({
+            data: [...coreDocuments, ...additionalDocuments],
+        });
+        logger.info(`[Knowledge] Seeded ${coreDocuments.length + additionalDocuments.length} knowledge documents.`);
+    } else if (count === coreDocuments.length) {
+        // Existing environment with only core docs — add the 5 new student-facing ones
+        await prisma.knowledgeDocument.createMany({ data: additionalDocuments });
+        logger.info(`[Knowledge] Added ${additionalDocuments.length} new student-facing documents.`);
+    } else {
+        logger.info(`[Knowledge] Knowledge base already up to date (${count} documents).`);
+    }
 }

@@ -6,7 +6,8 @@ import {
     getStudentFees,
     getStudentVisitors,
     createStudentVisitor,
-    createStudentMaintenance
+    createStudentMaintenance,
+    askStudentAI,
 } from '../controllers/student.controller';
 import { requireRole } from '../middleware/auth.middleware';
 
@@ -20,5 +21,12 @@ router.get('/fees', requireRole(['STUDENT']), getStudentFees);
 router.get('/visitors', requireRole(['STUDENT']), getStudentVisitors);
 router.post('/visitors', requireRole(['STUDENT']), createStudentVisitor);
 router.post('/maintenance', requireRole(['STUDENT']), createStudentMaintenance);
+
+/**
+ * POST /api/student/ask
+ * Student AI — answers questions grounded in the student's own data + knowledge corpus.
+ * STUDENT role only. residentId is derived exclusively from the JWT in the controller.
+ */
+router.post('/ask', requireRole(['STUDENT']), askStudentAI);
 
 export default router;

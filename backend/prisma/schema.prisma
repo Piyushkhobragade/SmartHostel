@@ -41,6 +41,10 @@ model Resident {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([roomId])
+  @@index([email])
 }
 
 model Room {
@@ -55,6 +59,9 @@ model Room {
   residents        Resident[]
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+
+  @@index([status])
+  @@index([currentOccupancy])
 }
 
 model AttendanceLog {
@@ -67,6 +74,10 @@ model AttendanceLog {
   checkInTime DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  @@index([residentId])
+  @@index([date])
+  @@index([status])
 }
 
 model VisitorLog {
@@ -82,6 +93,9 @@ model VisitorLog {
   preRegistered Boolean  @default(false)
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
+
+  @@index([residentId])
+  @@index([checkOutTime])
 }
 
 model Asset {
@@ -109,6 +123,11 @@ model MaintenanceRequest {
   resolvedAt  DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  @@index([status])
+  @@index([priority])
+  @@index([residentId])
+  @@index([createdAt])
 }
 
 model FeeInvoice {
@@ -123,6 +142,10 @@ model FeeInvoice {
   payments    Payment[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  @@index([residentId])
+  @@index([status])
+  @@index([dueDate])
 }
 
 model Payment {

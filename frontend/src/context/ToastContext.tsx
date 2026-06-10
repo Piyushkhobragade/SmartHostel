@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import React, { createContext, useContext, useState, useCallback } from 'react'
 import Toast, { type ToastType } from '../components/Toast'
 

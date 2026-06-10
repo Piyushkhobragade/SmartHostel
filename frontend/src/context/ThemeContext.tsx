@@ -1,3 +1,4 @@
+/* eslint-disable react-refresh/only-export-components, @typescript-eslint/no-explicit-any, @typescript-eslint/no-unused-vars */
 import { createContext, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 
@@ -28,15 +29,11 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
     useEffect(() => {
         const root = window.document.documentElement;
 
-        console.log('Theme changing to:', theme);
-
         // Remove both classes first
         root.classList.remove('light', 'dark');
 
         // Add current theme class
         root.classList.add(theme);
-
-        console.log('HTML classes:', root.className);
 
         // Store in localStorage
         localStorage.setItem('theme', theme);

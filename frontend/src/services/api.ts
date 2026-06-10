@@ -1,3 +1,4 @@
+ 
 import axios from 'axios';
 import { API_BASE_URL } from '../config/constants';
 
@@ -39,24 +40,37 @@ api.interceptors.response.use(
 
 // Residents API
 export const residentsAPI = {
-    getAll: () => api.get('/residents'),
-    create: (data: any) => api.post('/residents', data),
-    update: (id: string, data: any) => api.put(`/residents/${id}`, data),
+    getAll: async () => {
+        const res = await api.get('/residents');
+        // Unwrap paginated response format for backward compatibility
+        if (res.data && res.data.data && res.data.pagination) {
+            return { ...res, data: res.data.data, pagination: res.data.pagination };
+        }
+        return res;
+    },
+    create: (data: unknown) => api.post('/residents', data),
+    update: (id: string, data: unknown) => api.put(`/residents/${id}`, data),
     delete: (id: string) => api.delete(`/residents/${id}`),
+};
+
+// Dashboard API
+export const dashboardAPI = {
+    getSummary: () => api.get('/dashboard'),
+    getIntelligence: () => api.get('/dashboard/intelligence'),
 };
 
 // Rooms API
 export const roomsAPI = {
     getAll: () => api.get('/rooms'),
-    create: (data: any) => api.post('/rooms', data),
-    update: (id: string, data: any) => api.put(`/rooms/${id}`, data),
+    create: (data: unknown) => api.post('/rooms', data),
+    update: (id: string, data: unknown) => api.put(`/rooms/${id}`, data),
     delete: (id: string) => api.delete(`/rooms/${id}`),
 };
 
 // Attendance API
 export const attendanceAPI = {
-    getAll: (params?: any) => api.get('/attendance', { params }),
-    mark: (data: any) => api.post('/attendance', data),
+    getAll: (params?: Record<string, unknown>) => api.get('/attendance', { params }),
+    mark: (data: unknown) => api.post('/attendance', data),
 };
 
 // Summary API
@@ -66,16 +80,16 @@ export const summaryAPI = {
 
 // Visitors API
 export const visitorsAPI = {
-    getAll: (params?: any) => api.get('/visitors', { params }),
-    create: (data: any) => api.post('/visitors', data),
+    getAll: (params?: Record<string, unknown>) => api.get('/visitors', { params }),
+    create: (data: unknown) => api.post('/visitors', data),
     checkout: (id: string) => api.post(`/visitors/${id}/checkout`),
 };
 
 // Fees API
 export const feesAPI = {
-    getInvoices: (params?: any) => api.get('/fees/invoices', { params }),
-    createInvoice: (data: any) => api.post('/fees/invoices', data),
-    createPayment: (data: any) => api.post('/fees/payments', data),
+    getInvoices: (params?: Record<string, unknown>) => api.get('/fees/invoices', { params }),
+    createInvoice: (data: unknown) => api.post('/fees/invoices', data),
+    createPayment: (data: unknown) => api.post('/fees/payments', data),
 };
 
 // Analytics API
@@ -87,25 +101,25 @@ export const analyticsAPI = {
 
 // Assets API
 export const assetsAPI = {
-    getAll: (params?: any) => api.get('/assets', { params }),
-    create: (data: any) => api.post('/assets', data),
-    update: (id: string, data: any) => api.put(`/assets/${id}`, data),
+    getAll: (params?: Record<string, unknown>) => api.get('/assets', { params }),
+    create: (data: unknown) => api.post('/assets', data),
+    update: (id: string, data: unknown) => api.put(`/assets/${id}`, data),
     delete: (id: string) => api.delete(`/assets/${id}`),
 };
 
 // Maintenance API
 export const maintenanceAPI = {
-    getAll: (params?: any) => api.get('/maintenance', { params }),
-    create: (data: any) => api.post('/maintenance', data),
+    getAll: (params?: Record<string, unknown>) => api.get('/maintenance', { params }),
+    create: (data: unknown) => api.post('/maintenance', data),
     updateStatus: (id: string, status: string) => api.put(`/maintenance/${id}`, { status }),
 };
 
 // Mess Subscriptions API
 export const messAPI = {
-    getAll: (params?: any) => api.get('/mess/subscriptions', { params }),
+    getAll: (params?: Record<string, unknown>) => api.get('/mess/subscriptions', { params }),
     getById: (id: string) => api.get(`/mess/subscriptions/${id}`),
-    create: (data: any) => api.post('/mess/subscriptions', data),
-    update: (id: string, data: any) => api.put(`/mess/subscriptions/${id}`, data),
+    create: (data: unknown) => api.post('/mess/subscriptions', data),
+    update: (id: string, data: unknown) => api.put(`/mess/subscriptions/${id}`, data),
     deactivate: (id: string) => api.patch(`/mess/subscriptions/${id}/deactivate`),
 };
 
@@ -116,15 +130,17 @@ export const studentAPI = {
     getAttendance: (params?: { month?: number; year?: number }) => api.get('/student/attendance', { params }),
     getFees: () => api.get('/student/fees'),
     getVisitors: () => api.get('/student/visitors'),
-    createVisitor: (data: any) => api.post('/student/visitors', data),
-    createMaintenance: (data: any) => api.post('/student/maintenance', data),
+    createVisitor: (data: unknown) => api.post('/student/visitors', data),
+    createMaintenance: (data: unknown) => api.post('/student/maintenance', data),
+    /** Student AI — answers questions grounded in own data + knowledge corpus. Session-only. */
+    ask: (question: string) => api.post('/student/ask', { question }),
 };
 
 // Knowledge API
 export const knowledgeAPI = {
     getAll: () => api.get('/knowledge'),
-    create: (data: any) => api.post('/knowledge', data),
-    update: (id: string, data: any) => api.put(`/knowledge/${id}`, data),
+    create: (data: unknown) => api.post('/knowledge', data),
+    update: (id: string, data: unknown) => api.put(`/knowledge/${id}`, data),
     delete: (id: string) => api.delete(`/knowledge/${id}`),
     ask: (question: string) => api.post('/knowledge/ask', { question }),
 };
@@ -139,8 +155,8 @@ export const copilotAPI = {
 
 // Timeline & Alerts API
 export const timelineAPI = {
-    getEvents: (params?: any) => api.get('/timeline', { params }),
-    getAlerts: (params?: any) => api.get('/alerts', { params }),
+    getEvents: (params?: Record<string, unknown>) => api.get('/timeline', { params }),
+    getAlerts: (params?: Record<string, unknown>) => api.get('/alerts', { params }),
     acknowledgeAlert: (id: string) => api.patch(`/alerts/${id}`, { status: 'ACKNOWLEDGED' }),
     resolveAlert: (id: string) => api.patch(`/alerts/${id}`, { status: 'RESOLVED' }),
     dismissAlert: (id: string) => api.patch(`/alerts/${id}`, { status: 'DISMISSED' }),
@@ -151,6 +167,12 @@ export const twinAPI = {
     getOverview: () => api.get('/twin/overview'),
     getRoomProfile: (id: string) => api.get(`/twin/room/${id}`),
     getHeatmap: (type: 'occupancy' | 'maintenance' | 'cost') => api.get(`/twin/heatmap/${type}`),
+};
+
+// Auth API
+export const authAPI = {
+    forgotPassword: (data: { username: string; resetCode: string; newPassword: string }) =>
+        api.post('/auth/forgot-password', data),
 };
 
 export default api;

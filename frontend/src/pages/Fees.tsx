@@ -1,9 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any, react-hooks/exhaustive-deps */
 import { useState, useEffect } from 'react'
 import { feesAPI, residentsAPI } from '../services/api'
-import Table from '../components/Table'
+import { DataGrid } from '../components/DataGrid'
+import type { ColumnDef } from '../components/DataGrid'
+import Modal from '../components/Modal'
+import StatusBadge from '../components/widgets/StatusBadge'
+import type { StatusVariant } from '../components/widgets/StatusBadge'
 import Button from '../components/Button'
 import Input from '../components/Input'
-import { Plus, X, DollarSign, Banknote } from 'lucide-react'
+import { Plus, DollarSign, Banknote } from 'lucide-react'
 import { useToast } from '../context/ToastContext'
 import EmptyState from '../components/ui/EmptyState'
 
@@ -31,6 +36,12 @@ interface Invoice {
     payments: Payment[]
 }
 
+const STATUS_VARIANT_MAP: Record<string, StatusVariant> = {
+    PAID: 'success',
+    PARTIAL: 'warning',
+    PENDING: 'danger',
+}
+
 export default function Fees() {
     const [invoices, setInvoices] = useState<Invoice[]>([])
     const [residents, setResidents] = useState<Resident[]>([])
@@ -49,7 +60,6 @@ export default function Fees() {
         method: 'CASH',
         reference: '',
     })
-    const [searchQuery, setSearchQuery] = useState('')
     const [filterStatus, setFilterStatus] = useState<'ALL' | 'PENDING' | 'PAID' | 'PARTIAL'>('ALL')
     const { showToast } = useToast()
 
@@ -143,163 +153,192 @@ export default function Fees() {
         setShowPaymentForm(true)
     }
 
-    const getStatusBadge = (status: string) => {
-        const styles = {
-            PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-            PARTIAL: 'bg-blue-100 text-blue-800 border-blue-200',
-            PAID: 'bg-green-100 text-green-800 border-green-200',
-        }
-        return (
-            <span className={`px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full border ${styles[status as keyof typeof styles] || 'bg-gray-100 text-gray-800'}`}>
-                {status}
-            </span>
-        )
-    }
-
     const getTotalPaid = (invoice: Invoice) => {
         return invoice.payments.reduce((sum, p) => sum + p.amount, 0)
     }
 
     const filteredInvoices = invoices.filter(invoice => {
-        const matchesSearch = invoice.resident.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            invoice.description.toLowerCase().includes(searchQuery.toLowerCase())
-
         const matchesStatus =
             filterStatus === 'ALL' ||
             invoice.status === filterStatus
-
-        return matchesSearch && matchesStatus
+        return matchesStatus
     })
 
-    const columns = [
+    const columns: ColumnDef<Invoice>[] = [
         {
+            key: 'resident',
             header: 'Resident',
-            accessor: (item: Invoice) => <span className="font-medium text-gray-900 dark:text-white">{item.resident.fullName}</span>
+            accessor: (item) => (
+                <span style={{ color: 'rgb(var(--text-primary))', fontWeight: 500 }}>
+                    {item.resident.fullName}
+                </span>
+            ),
+            sortable: true,
         },
         {
+            key: 'description',
             header: 'Description',
-            accessor: 'description' as keyof Invoice
+            accessor: 'description',
         },
         {
+            key: 'amount',
             header: 'Amount',
-            accessor: (item: Invoice) => {
+            accessor: (item) => {
                 const totalPaid = getTotalPaid(item)
                 return (
-                    <div className="text-sm">
-                        <div className="font-semibold text-gray-900 dark:text-white">₹{item.amount.toFixed(2)}</div>
+                    <div style={{ fontSize: '0.875rem' }}>
+                        <div style={{ fontWeight: 600, color: 'rgb(var(--text-primary))' }}>
+                            ₹{item.amount.toFixed(2)}
+                        </div>
                         {totalPaid > 0 && (
-                            <div className="text-xs text-gray-500 dark:text-gray-400">Paid: ₹{totalPaid.toFixed(2)}</div>
+                            <div style={{ fontSize: '0.75rem', color: 'rgb(var(--text-muted))' }}>
+                                Paid: ₹{totalPaid.toFixed(2)}
+                            </div>
                         )}
                     </div>
                 )
-            }
+            },
         },
         {
+            key: 'dueDate',
             header: 'Due Date',
-            accessor: (item: Invoice) => new Date(item.dueDate).toLocaleDateString('en-IN', {
-                day: 'numeric',
-                month: 'short',
-                year: 'numeric'
-            })
+            accessor: (item) =>
+                new Date(item.dueDate).toLocaleDateString('en-IN', {
+                    day: 'numeric',
+                    month: 'short',
+                    year: 'numeric',
+                }),
         },
-        { header: 'Status', accessor: (item: Invoice) => getStatusBadge(item.status) },
+        {
+            key: 'status',
+            header: 'Status',
+            accessor: (item) => (
+                <StatusBadge
+                    label={item.status}
+                    variant={STATUS_VARIANT_MAP[item.status] ?? 'muted'}
+                />
+            ),
+        },
+    ]
+
+    const filterPills: { label: string; value: 'ALL' | 'PENDING' | 'PAID' | 'PARTIAL' }[] = [
+        { label: 'All', value: 'ALL' },
+        { label: 'Pending', value: 'PENDING' },
+        { label: 'Paid', value: 'PAID' },
+        { label: 'Partial', value: 'PARTIAL' },
     ]
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Fee Management</h1>
-                    <p className="text-gray-500 mt-1">Manage invoices and track payments</p>
-                </div>
-                <Button onClick={() => setShowInvoiceForm(true)}>
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create Invoice
-                </Button>
-            </div>
-
             {/* Create Invoice Modal */}
-            {showInvoiceForm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black bg-opacity-50 transition-opacity" onClick={resetInvoiceForm} />
-                    <div className="relative bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-md w-full p-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Create Invoice</h2>
-                            <button onClick={resetInvoiceForm} className="text-gray-400 hover:text-gray-500 dark:text-gray-400">
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <form onSubmit={handleInvoiceSubmit} className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Resident
-                                </label>
-                                <select
-                                    value={invoiceFormData.residentId}
-                                    onChange={(e) => setInvoiceFormData({ ...invoiceFormData, residentId: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    required
-                                >
-                                    <option value="">Select resident</option>
-                                    {residents.map((resident) => (
-                                        <option key={resident.id} value={resident.id}>
-                                            {resident.fullName}
-                                        </option>
-                                    ))}
-                                </select>
-                            </div>
-                            <Input
-                                label="Amount (₹)"
-                                type="number"
-                                step="0.01"
-                                value={invoiceFormData.amount}
-                                onChange={(e) => setInvoiceFormData({ ...invoiceFormData, amount: e.target.value })}
-                                placeholder="Enter amount"
-                                required
-                            />
-                            <Input
-                                label="Due Date"
-                                type="date"
-                                value={invoiceFormData.dueDate}
-                                onChange={(e) => setInvoiceFormData({ ...invoiceFormData, dueDate: e.target.value })}
-                                required
-                            />
-                            <Input
-                                label="Description"
-                                value={invoiceFormData.description}
-                                onChange={(e) => setInvoiceFormData({ ...invoiceFormData, description: e.target.value })}
-                                placeholder="e.g., Monthly Rent - November 2024"
-                                required
-                            />
-                            <div className="flex gap-3 pt-4">
-                                <Button type="button" variant="secondary" onClick={resetInvoiceForm} className="flex-1">
-                                    Cancel
-                                </Button>
-                                <Button type="submit" className="flex-1">
-                                    Create Invoice
-                                </Button>
-                            </div>
-                        </form>
+            <Modal
+                isOpen={showInvoiceForm}
+                onClose={resetInvoiceForm}
+                title="Create Invoice"
+                maxWidth="md"
+            >
+                <form onSubmit={handleInvoiceSubmit} className="space-y-4">
+                    <div>
+                        <label
+                            style={{
+                                display: 'block',
+                                fontSize: '0.875rem',
+                                fontWeight: 500,
+                                color: 'rgb(var(--text-secondary))',
+                                marginBottom: '0.25rem',
+                            }}
+                        >
+                            Resident
+                        </label>
+                        <select
+                            value={invoiceFormData.residentId}
+                            onChange={(e) => setInvoiceFormData({ ...invoiceFormData, residentId: e.target.value })}
+                            className="input-field w-full"
+                            required
+                        >
+                            <option value="">Select resident</option>
+                            {residents.map((resident) => (
+                                <option key={resident.id} value={resident.id}>
+                                    {resident.fullName}
+                                </option>
+                            ))}
+                        </select>
                     </div>
-                </div>
-            )}
+                    <Input
+                        label="Amount (₹)"
+                        type="number"
+                        step="0.01"
+                        value={invoiceFormData.amount}
+                        onChange={(e) => setInvoiceFormData({ ...invoiceFormData, amount: e.target.value })}
+                        placeholder="Enter amount"
+                        required
+                    />
+                    <Input
+                        label="Due Date"
+                        type="date"
+                        value={invoiceFormData.dueDate}
+                        onChange={(e) => setInvoiceFormData({ ...invoiceFormData, dueDate: e.target.value })}
+                        required
+                    />
+                    <Input
+                        label="Description"
+                        value={invoiceFormData.description}
+                        onChange={(e) => setInvoiceFormData({ ...invoiceFormData, description: e.target.value })}
+                        placeholder="e.g., Monthly Rent - November 2024"
+                        required
+                    />
+                    <div className="flex gap-3 pt-4">
+                        <Button type="button" variant="secondary" onClick={resetInvoiceForm} className="flex-1">
+                            Cancel
+                        </Button>
+                        <Button type="submit" className="flex-1">
+                            Create Invoice
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
 
             {/* Payment Modal */}
-            {showPaymentForm && selectedInvoice && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                    <div className="absolute inset-0 bg-black bg-opacity-50 transition-opacity" onClick={resetPaymentForm} />
-                    <div className="relative bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-md w-full p-6">
-                        <div className="flex items-center justify-between mb-6">
-                            <h2 className="text-lg font-semibold text-gray-900 dark:text-white">Record Payment</h2>
-                            <button onClick={resetPaymentForm} className="text-gray-400 hover:text-gray-500 dark:text-gray-400">
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                        <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-                            <div className="text-sm text-gray-600 dark:text-gray-400">Invoice for: <span className="font-medium text-gray-900 dark:text-white">{selectedInvoice.resident.fullName}</span></div>
-                            <div className="text-sm text-gray-600 mt-1">Total Amount: <span className="font-medium text-gray-900 dark:text-white">₹{selectedInvoice.amount.toFixed(2)}</span></div>
-                            <div className="text-sm text-gray-600 mt-1">Paid: <span className="font-medium text-gray-900 dark:text-white">₹{getTotalPaid(selectedInvoice).toFixed(2)}</span></div>
-                            <div className="text-sm text-gray-600 mt-1">Remaining: <span className="font-medium text-green-600">₹{(selectedInvoice.amount - getTotalPaid(selectedInvoice)).toFixed(2)}</span></div>
+            <Modal
+                isOpen={showPaymentForm && selectedInvoice !== null}
+                onClose={resetPaymentForm}
+                title="Record Payment"
+                maxWidth="md"
+            >
+                {selectedInvoice && (
+                    <>
+                        <div
+                            style={{
+                                marginBottom: '1rem',
+                                padding: '1rem',
+                                borderRadius: '0.5rem',
+                                background: 'rgba(var(--border-color), 0.20)',
+                            }}
+                        >
+                            <div style={{ fontSize: '0.875rem', color: 'rgb(var(--text-secondary))' }}>
+                                Invoice for:{' '}
+                                <span style={{ fontWeight: 500, color: 'rgb(var(--text-primary))' }}>
+                                    {selectedInvoice.resident.fullName}
+                                </span>
+                            </div>
+                            <div style={{ fontSize: '0.875rem', color: 'rgb(var(--text-secondary))', marginTop: '0.25rem' }}>
+                                Total Amount:{' '}
+                                <span style={{ fontWeight: 500, color: 'rgb(var(--text-primary))' }}>
+                                    ₹{selectedInvoice.amount.toFixed(2)}
+                                </span>
+                            </div>
+                            <div style={{ fontSize: '0.875rem', color: 'rgb(var(--text-secondary))', marginTop: '0.25rem' }}>
+                                Paid:{' '}
+                                <span style={{ fontWeight: 500, color: 'rgb(var(--text-primary))' }}>
+                                    ₹{getTotalPaid(selectedInvoice).toFixed(2)}
+                                </span>
+                            </div>
+                            <div style={{ fontSize: '0.875rem', color: 'rgb(var(--text-secondary))', marginTop: '0.25rem' }}>
+                                Remaining:{' '}
+                                <span style={{ fontWeight: 500, color: 'rgb(var(--color-success))' }}>
+                                    ₹{(selectedInvoice.amount - getTotalPaid(selectedInvoice)).toFixed(2)}
+                                </span>
+                            </div>
                         </div>
                         <form onSubmit={handlePaymentSubmit} className="space-y-4">
                             <Input
@@ -312,13 +351,21 @@ export default function Fees() {
                                 required
                             />
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                <label
+                                    style={{
+                                        display: 'block',
+                                        fontSize: '0.875rem',
+                                        fontWeight: 500,
+                                        color: 'rgb(var(--text-secondary))',
+                                        marginBottom: '0.25rem',
+                                    }}
+                                >
                                     Payment Method
                                 </label>
                                 <select
                                     value={paymentFormData.method}
                                     onChange={(e) => setPaymentFormData({ ...paymentFormData, method: e.target.value })}
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    className="input-field w-full"
                                 >
                                     <option value="CASH">Cash</option>
                                     <option value="ONLINE">Online Transfer</option>
@@ -341,58 +388,60 @@ export default function Fees() {
                                 </Button>
                             </div>
                         </form>
-                    </div>
-                </div>
-            )}
+                    </>
+                )}
+            </Modal>
 
-            {/* Filter Buttons */}
+            {/* Filter Pill Buttons */}
             <div className="flex items-center space-x-4 mb-4">
-                <div className="flex items-center space-x-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-lg p-1">
-                    <button
-                        onClick={() => setFilterStatus('ALL')}
-                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${filterStatus === 'ALL'
-                            ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700'
-                            }`}
-                    >
-                        All
-                    </button>
-                    <button
-                        onClick={() => setFilterStatus('PENDING')}
-                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${filterStatus === 'PENDING'
-                            ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700'
-                            }`}
-                    >
-                        Pending
-                    </button>
-                    <button
-                        onClick={() => setFilterStatus('PAID')}
-                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${filterStatus === 'PAID'
-                            ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700'
-                            }`}
-                    >
-                        Paid
-                    </button>
-                    <button
-                        onClick={() => setFilterStatus('PARTIAL')}
-                        className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${filterStatus === 'PARTIAL'
-                            ? 'bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                            : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-slate-700'
-                            }`}
-                    >
-                        Partial
-                    </button>
+                <div
+                    className="flex items-center space-x-2 rounded-lg p-1"
+                    style={{
+                        background: 'rgb(var(--bg-panel))',
+                        border: '1px solid rgb(var(--border-color))',
+                    }}
+                >
+                    {filterPills.map(({ label, value }) => (
+                        <button
+                            key={value}
+                            onClick={() => setFilterStatus(value)}
+                            style={
+                                filterStatus === value
+                                    ? {
+                                          background: 'rgba(var(--color-primary), 0.12)',
+                                          color: 'rgb(var(--color-primary))',
+                                          border: '1px solid rgba(var(--color-primary), 0.30)',
+                                      }
+                                    : {
+                                          background: 'transparent',
+                                          color: 'rgb(var(--text-secondary))',
+                                          border: '1px solid rgb(var(--border-color))',
+                                      }
+                            }
+                            className="px-3 py-1.5 text-sm font-medium rounded-md transition-colors"
+                        >
+                            {label}
+                        </button>
+                    ))}
                 </div>
             </div>
 
-            <Table
+            <DataGrid<Invoice>
+                title="Fee Management"
                 data={filteredInvoices}
                 columns={columns}
-                isLoading={loading}
-                onSearch={setSearchQuery}
-                searchPlaceholder="Search invoices..."
+                loading={loading}
+                searchFilter={(row, q) =>
+                    row.resident.fullName.toLowerCase().includes(q.toLowerCase()) ||
+                    row.description.toLowerCase().includes(q.toLowerCase())
+                }
+                csvExport={{ filename: 'fees' }}
+                toolbarActions={
+                    <Button onClick={() => setShowInvoiceForm(true)}>
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Invoice
+                    </Button>
+                }
                 emptyState={
                     <EmptyState
                         icon={Banknote}
@@ -406,13 +455,31 @@ export default function Fees() {
                         }
                     />
                 }
-                actions={(invoice) => (
+                rowActions={(invoice) => (
                     <div className="flex justify-end">
                         {invoice.status !== 'PAID' && (
                             <button
                                 onClick={(e) => { e.stopPropagation(); openPaymentModal(invoice); }}
-                                className="flex items-center px-3 py-1.5 text-sm text-green-600 hover:bg-green-50 rounded-lg transition-colors"
                                 title="Record payment"
+                                style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    padding: '0.375rem 0.75rem',
+                                    fontSize: '0.875rem',
+                                    borderRadius: '0.5rem',
+                                    color: 'rgb(var(--color-success))',
+                                    background: 'transparent',
+                                    border: 'none',
+                                    cursor: 'pointer',
+                                    transition: 'background 0.15s',
+                                }}
+                                onMouseEnter={(e) => {
+                                    (e.currentTarget as HTMLButtonElement).style.background =
+                                        'rgba(var(--color-success), 0.10)'
+                                }}
+                                onMouseLeave={(e) => {
+                                    (e.currentTarget as HTMLButtonElement).style.background = 'transparent'
+                                }}
                             >
                                 <DollarSign className="w-4 h-4 mr-1" />
                                 Pay

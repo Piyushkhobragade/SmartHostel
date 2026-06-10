@@ -1,13 +1,9 @@
 import { Request, Response } from 'express';
-import prisma from '../lib/prisma';
+import { roomService } from '../services/room.service';
 
 export const getRooms = async (req: Request, res: Response) => {
     try {
-        const rooms = await prisma.room.findMany({
-            include: {
-                residents: true,
-            },
-        });
+        const rooms = await roomService.getRooms();
         res.json(rooms);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch rooms' });
@@ -16,16 +12,7 @@ export const getRooms = async (req: Request, res: Response) => {
 
 export const createRoom = async (req: Request, res: Response) => {
     try {
-        const { roomNumber, capacity, type, status } = req.body;
-        const room = await prisma.room.create({
-            data: {
-                roomNumber,
-                capacity,
-                type,
-                status: status || 'AVAILABLE',
-                currentOccupancy: 0
-            },
-        });
+        const room = await roomService.createRoom(req.body);
         res.json(room);
     } catch (error) {
         res.status(500).json({ error: 'Failed to create room' });
@@ -35,11 +22,7 @@ export const createRoom = async (req: Request, res: Response) => {
 export const updateRoom = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        const { roomNumber, capacity, type, status } = req.body;
-        const room = await prisma.room.update({
-            where: { id },
-            data: { roomNumber, capacity, type, status },
-        });
+        const room = await roomService.updateRoom(id, req.body);
         res.json(room);
     } catch (error) {
         res.status(500).json({ error: 'Failed to update room' });
@@ -49,7 +32,7 @@ export const updateRoom = async (req: Request, res: Response) => {
 export const deleteRoom = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-        await prisma.room.delete({ where: { id } });
+        await roomService.deleteRoom(id);
         res.json({ message: 'Room deleted successfully' });
     } catch (error) {
         res.status(500).json({ error: 'Failed to delete room' });

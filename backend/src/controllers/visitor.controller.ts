@@ -1,41 +1,13 @@
 import { Request, Response } from 'express';
-import prisma from '../lib/prisma';
+import { visitorService } from '../services/visitor.service';
 
 export const getVisitors = async (req: Request, res: Response) => {
     try {
         const { residentId, date } = req.query;
-        const where: any = {};
-
-        if (residentId) {
-            where.residentId = residentId as string;
-        }
-
-        if (date) {
-            const searchDate = new Date(date as string);
-            const nextDay = new Date(searchDate);
-            nextDay.setDate(nextDay.getDate() + 1);
-
-            where.checkInTime = {
-                gte: searchDate,
-                lt: nextDay
-            };
-        }
-
-        const visitors = await prisma.visitorLog.findMany({
-            where,
-            include: {
-                resident: {
-                    select: {
-                        id: true,
-                        fullName: true
-                    }
-                }
-            },
-            orderBy: {
-                checkInTime: 'desc'
-            }
+        const visitors = await visitorService.getVisitors({
+            residentId: residentId as string,
+            date: date as string
         });
-
         res.json(visitors);
     } catch (error) {
         console.error('Failed to fetch visitors:', error);
@@ -45,26 +17,7 @@ export const getVisitors = async (req: Request, res: Response) => {
 
 export const createVisitor = async (req: Request, res: Response) => {
     try {
-        const { visitorName, residentId, purpose, idType, idLast4 } = req.body;
-
-        const visitor = await prisma.visitorLog.create({
-            data: {
-                visitorName,
-                residentId,
-                purpose,
-                idType,
-                idLast4
-            },
-            include: {
-                resident: {
-                    select: {
-                        id: true,
-                        fullName: true
-                    }
-                }
-            }
-        });
-
+        const visitor = await visitorService.createVisitor(req.body);
         res.json(visitor);
     } catch (error) {
         console.error('Failed to create visitor:', error);
@@ -75,22 +28,7 @@ export const createVisitor = async (req: Request, res: Response) => {
 export const checkoutVisitor = async (req: Request, res: Response) => {
     try {
         const { id } = req.params;
-
-        const visitor = await prisma.visitorLog.update({
-            where: { id },
-            data: {
-                checkOutTime: new Date()
-            },
-            include: {
-                resident: {
-                    select: {
-                        id: true,
-                        fullName: true
-                    }
-                }
-            }
-        });
-
+        const visitor = await visitorService.checkoutVisitor(id);
         res.json(visitor);
     } catch (error) {
         console.error('Failed to checkout visitor:', error);

@@ -1,19 +1,24 @@
-import { useState, useRef, useEffect } from 'react'
-import { ChevronDown, Check } from 'lucide-react'
+import { useState, useRef, useEffect } from 'react';
+import { ChevronDown, Check } from 'lucide-react';
+
+/**
+ * Select — canonical custom dropdown using CSS variable tokens.
+ * No hardcoded Tailwind colours.
+ */
 
 interface SelectOption {
-    value: string
-    label: string
+    value: string;
+    label: string;
 }
 
 interface SelectProps {
-    label: string
-    value: string
-    onChange: (value: string) => void
-    options: SelectOption[]
-    placeholder?: string
-    required?: boolean
-    disabled?: boolean
+    label: string;
+    value: string;
+    onChange: (value: string) => void;
+    options: SelectOption[];
+    placeholder?: string;
+    required?: boolean;
+    disabled?: boolean;
 }
 
 export default function Select({
@@ -23,36 +28,37 @@ export default function Select({
     options,
     placeholder = 'Select an option',
     required = false,
-    disabled = false
+    disabled = false,
 }: SelectProps) {
-    const [isOpen, setIsOpen] = useState(false)
-    const dropdownRef = useRef<HTMLDivElement>(null)
+    const [isOpen, setIsOpen] = useState(false);
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
-    const selectedOption = options.find(opt => opt.value === value)
+    const selectedOption = options.find(opt => opt.value === value);
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-                setIsOpen(false)
+                setIsOpen(false);
             }
-        }
-
-        document.addEventListener('mousedown', handleClickOutside)
-        return () => document.removeEventListener('mousedown', handleClickOutside)
-    }, [])
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
 
     const handleSelect = (optionValue: string) => {
-        onChange(optionValue)
-        setIsOpen(false)
-    }
+        onChange(optionValue);
+        setIsOpen(false);
+    };
 
     return (
         <div className="relative" ref={dropdownRef}>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                {label} {required && <span className="text-red-500">*</span>}
+            <label
+                className="block text-sm font-medium mb-1"
+                style={{ color: 'rgb(var(--text-secondary))' }}
+            >
+                {label} {required && <span style={{ color: 'rgb(var(--color-danger))' }}>*</span>}
             </label>
 
-            {/* Hidden input for HTML5 form validation */}
             {required && (
                 <input
                     type="text"
@@ -69,39 +75,62 @@ export default function Select({
                 type="button"
                 onClick={() => !disabled && setIsOpen(!isOpen)}
                 disabled={disabled}
-                className={`w-full px-4 py-2.5 text-left border rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 dark:focus:ring-orange-400 transition-colors ${disabled
-                        ? 'bg-gray-100 dark:bg-slate-800 cursor-not-allowed opacity-60'
-                        : 'bg-white dark:bg-slate-700 hover:bg-gray-50 dark:hover:bg-slate-600'
-                    } border-gray-300 dark:border-slate-600 text-gray-900 dark:text-white`}
+                className="input-field text-left flex items-center justify-between"
+                style={{ opacity: disabled ? 0.6 : 1, cursor: disabled ? 'not-allowed' : 'pointer' }}
             >
-                <div className="flex items-center justify-between">
-                    <span className={selectedOption ? '' : 'text-gray-500 dark:text-gray-400'}>
-                        {selectedOption ? selectedOption.label : placeholder}
-                    </span>
-                    <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} />
-                </div>
+                <span style={{ color: selectedOption ? 'rgb(var(--text-primary))' : 'rgb(var(--text-muted))' }}>
+                    {selectedOption ? selectedOption.label : placeholder}
+                </span>
+                <ChevronDown
+                    className="w-4 h-4 flex-shrink-0 transition-transform"
+                    style={{
+                        color: 'rgb(var(--text-muted))',
+                        transform: isOpen ? 'rotate(180deg)' : undefined,
+                    }}
+                />
             </button>
 
             {isOpen && (
-                <div className="absolute z-50 w-full mt-1 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg shadow-lg max-h-60 overflow-auto">
+                <div
+                    className="absolute z-50 w-full mt-1 rounded-lg shadow-lg max-h-60 overflow-auto custom-scrollbar"
+                    style={{
+                        background: 'rgb(var(--bg-panel))',
+                        border: '1px solid rgb(var(--border-color))',
+                    }}
+                >
                     {options.length === 0 ? (
-                        <div className="px-4 py-2.5 text-gray-500 dark:text-gray-400 text-sm">
+                        <div className="px-4 py-2.5 text-sm" style={{ color: 'rgb(var(--text-muted))' }}>
                             No options available
                         </div>
                     ) : (
-                        options.map((option) => (
+                        options.map(option => (
                             <button
                                 key={option.value}
                                 type="button"
                                 onClick={() => handleSelect(option.value)}
-                                className={`w-full px-4 py-2.5 text-left hover:bg-orange-50 dark:hover:bg-orange-900/20 transition-colors flex items-center justify-between ${option.value === value
-                                        ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-700 dark:text-orange-400'
-                                        : 'text-gray-900 dark:text-white'
-                                    }`}
+                                className="w-full px-4 py-2.5 text-left text-sm flex items-center justify-between transition-colors"
+                                style={{
+                                    color: option.value === value
+                                        ? 'rgb(var(--color-primary))'
+                                        : 'rgb(var(--text-primary))',
+                                    background: option.value === value
+                                        ? 'rgba(var(--color-primary), 0.08)'
+                                        : 'transparent',
+                                }}
+                                onMouseEnter={e => {
+                                    if (option.value !== value) {
+                                        (e.currentTarget as HTMLElement).style.background = 'rgba(var(--border-color), 0.4)';
+                                    }
+                                }}
+                                onMouseLeave={e => {
+                                    if (option.value !== value) {
+                                        (e.currentTarget as HTMLElement).style.background = 'transparent';
+                                    }
+                                }}
                             >
                                 <span>{option.label}</span>
                                 {option.value === value && (
-                                    <Check className="w-4 h-4 text-orange-600 dark:text-orange-400" />
+                                    <Check className="w-4 h-4 flex-shrink-0" style={{ color: 'rgb(var(--color-primary))' }} />
                                 )}
                             </button>
                         ))
@@ -109,5 +138,5 @@ export default function Select({
                 </div>
             )}
         </div>
-    )
+    );
 }

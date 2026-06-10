@@ -3,6 +3,8 @@ import prisma from '../lib/prisma';
 import { answerQuestion, seedKnowledgeDocuments } from '../services/ai/knowledge.service';
 import { isHealthy } from '../services/ai/ollama';
 import { AuthRequest } from '../middleware/auth.middleware';
+import { PromptInjectionError, InputTooLongError } from '../utils/promptSecurity';
+import { logger } from '../lib/logger';
 
 /**
  * GET /api/knowledge
@@ -101,13 +103,22 @@ export const askQuestion = async (req: AuthRequest, res: Response) => {
         const result = await answerQuestion(question.trim());
         res.json(result);
     } catch (error: any) {
-        console.error('Knowledge ask error:', error.message);
+        // 400: Client input violations — do not log as server errors
+        if (error instanceof PromptInjectionError) {
+            return res.status(400).json({ error: 'Input blocked: prompt injection detected.' });
+        }
+        if (error instanceof InputTooLongError) {
+            return res.status(400).json({ error: error.message });
+        }
+        // 503: Ollama unavailable
         if (error.message?.includes('timed out') || error.message?.includes('Ollama')) {
+            logger.warn({ err: error.message }, 'Knowledge ask: Ollama unavailable');
             return res.status(503).json({
-                error: 'AI service is unavailable. Please ensure Ollama is running with Qwen3:8b model.',
-                details: error.message
+                error: 'AI service is unavailable. Please ensure Ollama is running with the qwen2.5:3b model.',
+                details: error.message,
             });
         }
+        logger.error({ err: error.message }, 'Knowledge ask error');
         res.status(500).json({ error: 'Failed to process question.' });
     }
 };

@@ -2,36 +2,156 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+  :root {
+    /* Grafana-inspired Light Mode Tokens */
+    --bg-app: 244 245 245; 
+    --bg-panel: 255 255 255;
+    --bg-header: 255 255 255;
+    
+    --text-primary: 36 41 46;
+    --text-secondary: 88 96 105;
+    --text-muted: 106 115 125;
+    
+    --border-color: 204 204 220;
+    
+    --color-primary: 50 116 217; /* Grafana Blue */
+    --color-primary-hover: 31 96 196;
+    
+    --color-success: 115 191 105; /* Grafana Green */
+    --color-warning: 255 152 48;  /* Grafana Orange */
+    --color-danger: 242 73 92;    /* Grafana Red */
+    --color-info: 87 148 242;
+
+    --shadow-panel: 0 1px 3px 0 rgb(0 0 0 / 0.1);
+    --shadow-float: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+  }
+
+  .dark {
+    /* TRUE Grafana Dark Mode Tokens */
+    --bg-app: 17 18 23;      /* #111217 */
+    --bg-panel: 24 27 31;    /* #181b1f */
+    --bg-header: 24 27 31;   
+    
+    --text-primary: 204 204 220; /* #ccccdc */
+    --text-secondary: 153 153 170; /* #9999aa */
+    --text-muted: 102 102 119;   /* #666677 */
+    
+    --border-color: 44 50 53;    /* #2c3235 */
+    
+    --color-primary: 50 116 217; /* #3274d9 */
+    --color-primary-hover: 87 148 242; /* #5794f2 */
+    
+    --color-success: 115 191 105; /* #73bf69 */
+    --color-warning: 255 152 48;  /* #ff9830 */
+    --color-danger: 242 73 92;    /* #f2495c */
+    --color-info: 87 148 242;
+
+    --shadow-panel: 0 0 0 transparent; /* Grafana panels are usually flat with borders */
+    --shadow-float: 0 0 0 transparent;
+  }
+}
+
+@layer base {
+  body {
+    background-color: rgb(var(--bg-app));
+    color: rgb(var(--text-primary));
+    font-family: Inter, Roboto, sans-serif;
+    @apply antialiased transition-colors duration-200;
+  }
+}
+
+@layer components {
+  /* True Grafana Panel Style */
+  .panel, .stat-card {
+    background-color: rgb(var(--bg-panel));
+    border: 1px solid rgb(var(--border-color));
+    @apply relative overflow-hidden transition-colors duration-200;
+  }
+  
+  .panel-header {
+    color: rgb(var(--text-primary));
+    border-bottom: 1px solid rgb(var(--border-color));
+    @apply px-4 py-3 font-semibold text-sm tracking-wide;
+  }
+  
+  .panel-body {
+    @apply p-4;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center px-3 py-1.5 rounded text-sm font-medium transition-colors duration-200 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed border border-transparent;
+  }
+
+  .btn-primary {
+    background-color: rgb(var(--color-primary));
+    color: white;
+  }
+  .btn-primary:hover {
+    background-color: rgb(var(--color-primary-hover));
+  }
+
+  .input-field {
+    background-color: rgb(var(--bg-app));
+    border: 1px solid rgb(var(--border-color));
+    color: rgb(var(--text-primary));
+    @apply w-full px-3 py-1.5 rounded text-sm focus:outline-none focus:border-[rgb(var(--color-primary))] transition-colors;
+  }
+}
+
 @layer utilities {
-    .animate-slide-in-right {
-        animation: slide-in-right 0.3s ease-out forwards;
-    }
-
-    @keyframes slide-in-right {
-        0% {
-            transform: translateX(100%);
-            opacity: 0;
-        }
-
-        100% {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
+    /* ── Entrance animations ───────────────────────────────────────────────── */
 
     .animate-fadeIn {
-        animation: fadeIn 0.6s ease-out forwards;
+        animation: fadeIn 0.25s ease-out forwards;
+    }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(4px); }
+        to   { opacity: 1; transform: translateY(0); }
     }
 
-    @keyframes fadeIn {
-        0% {
-            opacity: 0;
-            transform: translateY(10px);
-        }
+    /* Used by ui/StatCard */
+    .animate-slide-up {
+        animation: slide-up 0.3s ease-out forwards;
+    }
+    @keyframes slide-up {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
 
-        100% {
-            opacity: 1;
-            transform: translateY(0);
-        }
+    /* Used by Toast */
+    .animate-slide-in-right {
+        animation: slide-in-right 0.25s ease-out forwards;
+    }
+    @keyframes slide-in-right {
+        from { opacity: 0; transform: translateX(16px); }
+        to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ── Scrollbar helpers ─────────────────────────────────────────────────── */
+
+    .scrollbar-none {
+        scrollbar-width: none;
+    }
+    .scrollbar-none::-webkit-scrollbar {
+        display: none;
+    }
+
+    .custom-scrollbar {
+        scrollbar-width: thin;
+        scrollbar-color: rgb(var(--border-color)) transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: rgb(var(--border-color));
+        border-radius: 4px;
+    }
+
+    /* ── Layout helpers ────────────────────────────────────────────────────── */
+
+    /* Themed divide-y using CSS vars (Tailwind divide can't use CSS vars) */
+    .divide-panel > * + * {
+        border-top: 1px solid rgb(var(--border-color));
     }
 }

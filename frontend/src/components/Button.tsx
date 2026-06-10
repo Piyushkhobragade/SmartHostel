@@ -1,50 +1,100 @@
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: 'primary' | 'secondary' | 'danger' | 'ghost';
+import type { ButtonHTMLAttributes, ReactNode } from 'react';
+import { Loader2 } from 'lucide-react';
+
+/**
+ * Button — canonical button component for SmartHostel.
+ *
+ * Single source of truth. Replaces:
+ *  - components/Button.tsx  (old, Tailwind hardcoded colours)
+ *  - components/ui/Button.tsx (old, gradient Tailwind)
+ *
+ * Uses CSS variable tokens exclusively.
+ *
+ * API notes:
+ *  - `loading` is the canonical prop name.
+ *  - `isLoading` is a deprecated alias kept for backward compatibility
+ *    during migration. Remove after all call sites are updated.
+ *  - `fullWidth` stretches the button to 100% width.
+ *  - `variant` includes 'warning' in addition to the original set.
+ */
+
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+    children: ReactNode;
+    variant?: 'primary' | 'secondary' | 'ghost' | 'danger' | 'warning';
     size?: 'sm' | 'md' | 'lg';
+    /** Canonical loading state prop */
+    loading?: boolean;
+    /** @deprecated Use `loading` instead */
     isLoading?: boolean;
+    fullWidth?: boolean;
 }
+
+const BASE =
+    'inline-flex items-center justify-center font-medium rounded-lg transition-colors duration-200 ' +
+    'focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 ' +
+    'disabled:opacity-50 disabled:cursor-not-allowed';
+
+const SIZE: Record<NonNullable<ButtonProps['size']>, string> = {
+    sm: 'px-3 py-1.5 text-xs gap-1.5',
+    md: 'px-4 py-2 text-sm gap-2',
+    lg: 'px-6 py-3 text-base gap-2',
+};
 
 export default function Button({
     children,
     variant = 'primary',
     size = 'md',
+    loading = false,
     isLoading = false,
+    fullWidth = false,
     className = '',
     disabled,
     ...props
 }: ButtonProps) {
-    const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
+    const isSpinning = loading || isLoading;
 
-    const variants = {
-        primary: 'bg-blue-600 hover:bg-blue-700 text-white focus:ring-blue-500 shadow-sm hover:shadow-md',
-        secondary: 'bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-900 dark:text-white focus:ring-gray-500',
-        danger: 'bg-red-600 hover:bg-red-700 text-white focus:ring-red-500 shadow-sm hover:shadow-md',
-        ghost: 'bg-transparent hover:bg-gray-100 dark:hover:bg-slate-700 text-gray-700 dark:text-gray-300 focus:ring-gray-500',
-    };
-
-    const sizes = {
-        sm: 'px-3 py-1.5 text-sm',
-        md: 'px-4 py-2 text-sm',
-        lg: 'px-6 py-3 text-base',
-    };
+    // Variant styles using CSS vars — no Tailwind hardcoded colours
+    const variantStyle: React.CSSProperties = (() => {
+        switch (variant) {
+            case 'primary':
+                return {
+                    background: 'rgb(var(--color-primary))',
+                    color: '#fff',
+                };
+            case 'danger':
+                return {
+                    background: 'rgb(var(--color-danger))',
+                    color: '#fff',
+                };
+            case 'warning':
+                return {
+                    background: 'rgb(var(--color-warning))',
+                    color: '#fff',
+                };
+            case 'secondary':
+                return {
+                    background: 'rgb(var(--bg-app))',
+                    color: 'rgb(var(--text-primary))',
+                    border: '1px solid rgb(var(--border-color))',
+                };
+            case 'ghost':
+                return {
+                    background: 'transparent',
+                    color: 'rgb(var(--text-secondary))',
+                    border: '1px solid transparent',
+                };
+        }
+    })();
 
     return (
         <button
-            className={`${baseStyles} ${variants[variant]} ${sizes[size]} ${className}`}
-            disabled={disabled || isLoading}
+            className={`${BASE} ${SIZE[size]} ${fullWidth ? 'w-full' : ''} ${className}`}
+            style={variantStyle}
+            disabled={disabled || isSpinning}
             {...props}
         >
-            {isLoading ? (
-                <>
-                    <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Loading...
-                </>
-            ) : (
-                children
-            )}
+            {isSpinning && <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" />}
+            {children}
         </button>
     );
 }

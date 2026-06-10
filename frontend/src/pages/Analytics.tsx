@@ -99,70 +99,164 @@ export default function Analytics() {
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-2xl font-bold text-gray-800 dark:text-white">Analytics & Reports</h1>
-                <p className="text-gray-500 dark:text-gray-400 mt-1">Track occupancy trends and fee collection over time</p>
+                <h1
+                    className="text-2xl font-bold"
+                    style={{ color: 'rgb(var(--text-primary))' }}
+                >
+                    Analytics &amp; Reports
+                </h1>
+                <p
+                    className="mt-1"
+                    style={{ color: 'rgb(var(--text-muted))' }}
+                >
+                    Track occupancy trends and fee collection over time
+                </p>
             </div>
 
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-slate-700">
+                {/* Avg Occupancy */}
+                <div
+                    className="rounded-xl shadow-sm p-6"
+                    style={{ background: 'rgb(var(--bg-panel))', border: '1px solid rgb(var(--border-color))' }}
+                >
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Avg Occupancy</p>
-                            <p className="text-3xl font-bold text-gray-800 mt-2">{avgOccupancy}%</p>
+                            <p
+                                className="text-sm font-medium"
+                                style={{ color: 'rgb(var(--text-secondary))' }}
+                            >
+                                Avg Occupancy
+                            </p>
+                            <p
+                                className="text-3xl font-bold mt-2"
+                                style={{ color: 'rgb(var(--text-primary))' }}
+                            >
+                                {avgOccupancy}%
+                            </p>
                         </div>
-                        <div className="p-3 rounded-lg bg-blue-100">
-                            <TrendingUp className="w-6 h-6 text-blue-600" />
+                        <div style={{ background: 'rgba(var(--color-primary), 0.12)', borderRadius: '8px', padding: '12px' }}>
+                            <TrendingUp className="w-6 h-6" style={{ color: 'rgb(var(--color-primary))' }} />
                         </div>
                     </div>
-                    <p className="text-sm text-gray-500 mt-4">Last 30 days</p>
+                    <p
+                        className="text-sm mt-4"
+                        style={{ color: 'rgb(var(--text-muted))' }}
+                    >
+                        Last 30 days
+                    </p>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-slate-700">
+                {/* Total Invoiced */}
+                <div
+                    className="rounded-xl shadow-sm p-6"
+                    style={{ background: 'rgb(var(--bg-panel))', border: '1px solid rgb(var(--border-color))' }}
+                >
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Invoiced</p>
-                            <p className="text-3xl font-bold text-gray-800 mt-2">₹{totalInvoiced.toLocaleString()}</p>
+                            <p
+                                className="text-sm font-medium"
+                                style={{ color: 'rgb(var(--text-secondary))' }}
+                            >
+                                Total Invoiced
+                            </p>
+                            <p
+                                className="text-3xl font-bold mt-2"
+                                style={{ color: 'rgb(var(--text-primary))' }}
+                            >
+                                ₹{totalInvoiced.toLocaleString()}
+                            </p>
                         </div>
-                        <div className="p-3 rounded-lg bg-green-100">
-                            <DollarSign className="w-6 h-6 text-green-600" />
+                        <div style={{ background: 'rgba(var(--color-success), 0.12)', borderRadius: '8px', padding: '12px' }}>
+                            <DollarSign className="w-6 h-6" style={{ color: 'rgb(var(--color-success))' }} />
                         </div>
                     </div>
-                    <p className="text-sm text-gray-500 mt-4">Last 30 days</p>
+                    <p
+                        className="text-sm mt-4"
+                        style={{ color: 'rgb(var(--text-muted))' }}
+                    >
+                        Last 30 days
+                    </p>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-slate-700">
+                {/* Total Collected */}
+                <div
+                    className="rounded-xl shadow-sm p-6"
+                    style={{ background: 'rgb(var(--bg-panel))', border: '1px solid rgb(var(--border-color))' }}
+                >
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Total Collected</p>
-                            <p className="text-3xl font-bold text-gray-800 mt-2">₹{totalPaid.toLocaleString()}</p>
+                            <p
+                                className="text-sm font-medium"
+                                style={{ color: 'rgb(var(--text-secondary))' }}
+                            >
+                                Total Collected
+                            </p>
+                            <p
+                                className="text-3xl font-bold mt-2"
+                                style={{ color: 'rgb(var(--text-primary))' }}
+                            >
+                                ₹{totalPaid.toLocaleString()}
+                            </p>
                         </div>
-                        <div className="p-3 rounded-lg bg-purple-100">
-                            <DollarSign className="w-6 h-6 text-purple-600" />
+                        <div style={{ background: 'rgba(var(--color-info), 0.12)', borderRadius: '8px', padding: '12px' }}>
+                            <DollarSign className="w-6 h-6" style={{ color: 'rgb(var(--color-info))' }} />
                         </div>
                     </div>
-                    <p className="text-sm text-gray-500 mt-4">Last 30 days</p>
+                    <p
+                        className="text-sm mt-4"
+                        style={{ color: 'rgb(var(--text-muted))' }}
+                    >
+                        Last 30 days
+                    </p>
                 </div>
 
-                <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm p-6 border border-gray-100 dark:border-slate-700">
+                {/* Collection Rate */}
+                <div
+                    className="rounded-xl shadow-sm p-6"
+                    style={{ background: 'rgb(var(--bg-panel))', border: '1px solid rgb(var(--border-color))' }}
+                >
                     <div className="flex items-center justify-between">
                         <div>
-                            <p className="text-sm font-medium text-gray-500 dark:text-gray-400">Collection Rate</p>
-                            <p className="text-3xl font-bold text-gray-800 mt-2">{collectionRate}%</p>
+                            <p
+                                className="text-sm font-medium"
+                                style={{ color: 'rgb(var(--text-secondary))' }}
+                            >
+                                Collection Rate
+                            </p>
+                            <p
+                                className="text-3xl font-bold mt-2"
+                                style={{ color: 'rgb(var(--text-primary))' }}
+                            >
+                                {collectionRate}%
+                            </p>
                         </div>
-                        <div className="p-3 rounded-lg bg-orange-100">
-                            <TrendingUp className="w-6 h-6 text-orange-600" />
+                        <div style={{ background: 'rgba(var(--color-warning), 0.12)', borderRadius: '8px', padding: '12px' }}>
+                            <TrendingUp className="w-6 h-6" style={{ color: 'rgb(var(--color-warning))' }} />
                         </div>
                     </div>
-                    <p className="text-sm text-gray-500 mt-4">Paid vs Invoiced</p>
+                    <p
+                        className="text-sm mt-4"
+                        style={{ color: 'rgb(var(--text-muted))' }}
+                    >
+                        Paid vs Invoiced
+                    </p>
                 </div>
             </div>
 
             {/* Charts */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Occupancy Rate Chart */}
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Occupancy Rate Trend</h3>
+                <div
+                    className="p-6 rounded-xl shadow-sm"
+                    style={{ background: 'rgb(var(--bg-panel))', border: '1px solid rgb(var(--border-color))' }}
+                >
+                    <h3
+                        className="text-lg font-semibold mb-4"
+                        style={{ color: 'rgb(var(--text-primary))' }}
+                    >
+                        Occupancy Rate Trend
+                    </h3>
                     <div className="h-80">
                         <ResponsiveContainer width="100%" height="100%">
                             <LineChart data={occupancyChartData}>
@@ -184,12 +278,12 @@ export default function Analytics() {
                                         if (active && payload && payload.length) {
                                             const data = payload[0].payload
                                             return (
-                                                <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-                                                    <p className="text-sm font-medium text-gray-900 dark:text-white">{data.date}</p>
-                                                    <p className="text-sm text-gray-600 mt-1">
-                                                        Occupancy: <span className="font-semibold text-blue-600">{data.occupancyRate}%</span>
+                                                <div style={{ background: 'rgb(var(--bg-panel))', border: '1px solid rgb(var(--border-color))', borderRadius: '8px', padding: '12px' }} className="shadow-lg">
+                                                    <p className="text-sm font-medium" style={{ color: 'rgb(var(--text-primary))' }}>{data.date}</p>
+                                                    <p className="text-sm mt-1" style={{ color: 'rgb(var(--text-secondary))' }}>
+                                                        Occupancy: <span className="font-semibold" style={{ color: '#3B82F6' }}>{data.occupancyRate}%</span>
                                                     </p>
-                                                    <p className="text-xs text-gray-500 mt-1">
+                                                    <p className="text-xs mt-1" style={{ color: 'rgb(var(--text-muted))' }}>
                                                         {data.occupied} / {data.total} beds
                                                     </p>
                                                 </div>
@@ -212,8 +306,16 @@ export default function Analytics() {
                 </div>
 
                 {/* Fee Collection Chart */}
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
-                    <h3 className="text-lg font-semibold text-gray-800 mb-4">Fee Collection Trend</h3>
+                <div
+                    className="p-6 rounded-xl shadow-sm"
+                    style={{ background: 'rgb(var(--bg-panel))', border: '1px solid rgb(var(--border-color))' }}
+                >
+                    <h3
+                        className="text-lg font-semibold mb-4"
+                        style={{ color: 'rgb(var(--text-primary))' }}
+                    >
+                        Fee Collection Trend
+                    </h3>
                     <div className="h-80">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={feesChartData}>
@@ -234,12 +336,12 @@ export default function Analytics() {
                                     content={({ active, payload }) => {
                                         if (active && payload && payload.length) {
                                             return (
-                                                <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-                                                    <p className="text-sm font-medium text-gray-900 dark:text-white">{payload[0].payload.date}</p>
-                                                    <p className="text-sm text-green-600 mt-1">
+                                                <div style={{ background: 'rgb(var(--bg-panel))', border: '1px solid rgb(var(--border-color))', borderRadius: '8px', padding: '12px' }} className="shadow-lg">
+                                                    <p className="text-sm font-medium" style={{ color: 'rgb(var(--text-primary))' }}>{payload[0].payload.date}</p>
+                                                    <p className="text-sm mt-1" style={{ color: 'rgb(var(--color-success))' }}>
                                                         Invoiced: <span className="font-semibold">₹{payload[0].value?.toLocaleString()}</span>
                                                     </p>
-                                                    <p className="text-sm text-blue-600">
+                                                    <p className="text-sm" style={{ color: '#3B82F6' }}>
                                                         Collected: <span className="font-semibold">₹{payload[1]?.value?.toLocaleString() || 0}</span>
                                                     </p>
                                                 </div>
@@ -259,15 +361,26 @@ export default function Analytics() {
 
             {/* Forecast Chart */}
             {forecastData.length > 0 && (
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-gray-100 dark:border-slate-700">
+                <div
+                    className="p-6 rounded-xl shadow-sm"
+                    style={{ background: 'rgb(var(--bg-panel))', border: '1px solid rgb(var(--border-color))' }}
+                >
                     <div className="flex items-center justify-between mb-4">
                         <div>
-                            <h3 className="text-lg font-semibold text-gray-800 dark:text-white">Forecast Occupancy Trend</h3>
-                            <p className="text-sm text-gray-500 mt-1">
+                            <h3
+                                className="text-lg font-semibold"
+                                style={{ color: 'rgb(var(--text-primary))' }}
+                            >
+                                Forecast Occupancy Trend
+                            </h3>
+                            <p
+                                className="text-sm mt-1"
+                                style={{ color: 'rgb(var(--text-muted))' }}
+                            >
                                 Statistical Forecast (Linear Regression + Moving Average) - Next 7 Days
                             </p>
                         </div>
-                        <div className="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-200">
+                        <div style={{ background: 'rgba(var(--color-info), 0.10)', color: 'rgb(var(--color-info))', border: '1px solid rgba(var(--color-info), 0.30)', borderRadius: '9999px', padding: '2px 12px', fontSize: '12px', fontWeight: 600 }}>
                             Educational Forecast
                         </div>
                     </div>
@@ -295,12 +408,12 @@ export default function Analytics() {
                                     content={({ active, payload }) => {
                                         if (active && payload && payload.length) {
                                             return (
-                                                <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-                                                    <p className="text-sm font-medium text-gray-900 dark:text-white">{payload[0].payload.date}</p>
-                                                    <p className="text-sm text-purple-600 mt-1">
+                                                <div style={{ background: 'rgb(var(--bg-panel))', border: '1px solid rgb(var(--border-color))', borderRadius: '8px', padding: '12px' }} className="shadow-lg">
+                                                    <p className="text-sm font-medium" style={{ color: 'rgb(var(--text-primary))' }}>{payload[0].payload.date}</p>
+                                                    <p className="text-sm mt-1" style={{ color: 'rgb(var(--color-info))' }}>
                                                         Predicted: <span className="font-semibold">{payload[0].value}%</span>
                                                     </p>
-                                                    <p className="text-xs text-gray-500 mt-1">
+                                                    <p className="text-xs mt-1" style={{ color: 'rgb(var(--text-muted))' }}>
                                                         Statistical forecast
                                                     </p>
                                                 </div>
@@ -321,8 +434,8 @@ export default function Analytics() {
                             </LineChart>
                         </ResponsiveContainer>
                     </div>
-                    <div className="mt-4 p-4 bg-gray-50 rounded-lg border border-gray-200 dark:border-slate-700">
-                        <p className="text-xs text-gray-600 dark:text-gray-400">
+                    <div style={{ background: 'rgb(var(--bg-app))', border: '1px solid rgb(var(--border-color))', borderRadius: '8px', padding: '16px', marginTop: '16px' }}>
+                        <p style={{ color: 'rgb(var(--text-muted))' }} className="text-xs">
                             <strong>Note:</strong> This forecast uses simple linear regression combined with 7-day moving average
                             for educational purposes. It analyzes historical occupancy patterns to predict future trends.
                             Not intended as financial or operational advice.
