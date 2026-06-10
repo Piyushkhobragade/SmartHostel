@@ -1,6 +1,9 @@
 import { Response } from 'express';
 import { AuthRequest } from '../middleware/auth.middleware';
 import prisma from '../lib/prisma';
+import { studentAsk } from '../services/ai/student.service';
+import { PromptInjectionError, InputTooLongError } from '../utils/promptSecurity';
+import { logger } from '../lib/logger';
 
 /**
  * Helper to get residentId from JWT — all student endpoints use this.
@@ -296,7 +299,52 @@ export const createStudentMaintenance = async (req: AuthRequest, res: Response) 
         });
         res.status(201).json(request);
     } catch (error) {
-        console.error('Student maintenance error:', error);
+        logger.error({ err: error }, 'Student maintenance error');
         res.status(500).json({ error: 'Failed to submit maintenance request.' });
+    }
+};
+
+/**
+ * POST /api/student/ask
+ * Student AI — answers questions using the student's own data + knowledge corpus.
+ *
+ * Security guarantees:
+ * - STUDENT role required (enforced in router via requireRole(['STUDENT']))
+ * - residentId comes exclusively from JWT — question text never influences data selection
+ * - No conversation history (stateless, session-only)
+ * - No write operations performed
+ */
+export const askStudentAI = async (req: AuthRequest, res: Response) => {
+    const residentId = getResidentId(req);
+    if (!residentId) {
+        return res.status(403).json({ error: 'Student profile not linked to this account.' });
+    }
+
+    try {
+        const { question } = req.body;
+        if (!question || typeof question !== 'string' || question.trim().length < 2) {
+            return res.status(400).json({ error: 'A question of at least 2 characters is required.' });
+        }
+
+        const result = await studentAsk(residentId, question.trim());
+        res.json(result);
+    } catch (error: any) {
+        // 400: client input violations — do not log as server errors
+        if (error instanceof PromptInjectionError) {
+            return res.status(400).json({ error: 'Input blocked: prompt injection detected.' });
+        }
+        if (error instanceof InputTooLongError) {
+            return res.status(400).json({ error: error.message });
+        }
+        // 503: Ollama unavailable
+        if (error.message?.includes('timed out') || error.message?.includes('Ollama')) {
+            logger.warn({ err: error.message }, 'Student AI: Ollama unavailable');
+            return res.status(503).json({
+                error: 'AI service is unavailable. Please ensure Ollama is running with the qwen2.5:3b model.',
+                details: error.message,
+            });
+        }
+        logger.error({ err: error.message }, 'Student AI ask error');
+        res.status(500).json({ error: 'Failed to process your question. Please try again.' });
     }
 };
