@@ -146,6 +146,7 @@ export function DataGrid<T extends { id: string }>({
     const searchRef = useRef<HTMLInputElement>(null);
 
     // reset page when search/filter changes
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     useEffect(() => { setClientPage(1); }, [search, colFilters, externalFilters]);
 
     // ── Handlers ──
