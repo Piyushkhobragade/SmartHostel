@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import { answerQuestion, seedKnowledgeDocuments } from '../services/ai/knowledge.service';
-import { isHealthy } from '../services/ai/ollama';
+import { isHealthy } from '../services/ai/gemini';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { PromptInjectionError, InputTooLongError } from '../utils/promptSecurity';
 import { logger } from '../lib/logger';

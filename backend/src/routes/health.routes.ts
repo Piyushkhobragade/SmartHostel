@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import prisma from '../lib/prisma';
 import client from 'prom-client';
 import { env } from '../config/env';
-import { isHealthy as ollamaHealth } from '../services/ai/ollama';
+import { isHealthy as aiHealth } from '../services/ai/gemini';
 import { getSchedulerStatus } from '../services/scheduler';
 
 const router = Router();
@@ -58,26 +58,26 @@ router.get('/metrics', async (req: Request, res: Response) => {
  * Never throws — all checks are isolated. Always returns 200 with a status object.
  */
 router.get('/health/ai', async (_req: Request, res: Response) => {
-  const [dbResult, ollamaResult] = await Promise.allSettled([
+  const [dbResult, aiResult] = await Promise.allSettled([
     prisma.$queryRaw`SELECT 1`.then(() => ({ ok: true })).catch((e: unknown) => ({
       ok: false,
       error: e instanceof Error ? e.message : String(e),
     })),
-    ollamaHealth(),
+    aiHealth(),
   ]);
 
   const db = dbResult.status === 'fulfilled' ? dbResult.value : { ok: false, error: 'DB check failed' };
-  const ollama = ollamaResult.status === 'fulfilled' ? ollamaResult.value : { ok: false, reachable: false, error: 'Ollama check failed' };
+  const aiState = aiResult.status === 'fulfilled' ? aiResult.value : { ok: false, reachable: false, error: 'AI check failed' };
   const scheduler = getSchedulerStatus();
 
-  const allHealthy = (db as { ok: boolean }).ok && (ollama as { ok: boolean }).ok && scheduler.running;
+  const allHealthy = (db as { ok: boolean }).ok && (aiState as { ok: boolean }).ok && scheduler.running;
 
   res.status(200).json({
     status: allHealthy ? 'healthy' : 'degraded',
     timestamp: new Date().toISOString(),
     components: {
       database: db,
-      ollama,
+      ai: aiState,
       scheduler,
     },
   });

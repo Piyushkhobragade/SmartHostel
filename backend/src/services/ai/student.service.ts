@@ -1,5 +1,5 @@
 import prisma from '../../lib/prisma';
-import { chat, OllamaMessage } from './ollama';
+import { chat, AiMessage } from './gemini';
 import { sanitizeInput, budgetContext, validateResponse } from '../../utils/promptSecurity';
 import { logger } from '../../lib/logger';
 
@@ -739,7 +739,7 @@ export async function studentAsk(
         `Question: ${safeQuestion}`,
     ].filter(Boolean).join('\n');
 
-    const messages: OllamaMessage[] = [
+    const messages: AiMessage[] = [
         { role: 'system', content: STUDENT_SYSTEM_PROMPT },
         { role: 'user', content: userContent },
     ];

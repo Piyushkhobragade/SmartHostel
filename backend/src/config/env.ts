@@ -9,8 +9,8 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(32, "JWT_SECRET must be at least 32 characters for security"),
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.string().default('3000').transform(Number),
-  OLLAMA_BASE_URL: z.string().url().default('http://localhost:11434'),
-  OLLAMA_MODEL: z.string().default('qwen2.5:3b'),
+  GEMINI_API_KEY: z.string().optional(),
+  GEMINI_MODEL: z.string().default('gemini-1.5-flash'),
   METRICS_TOKEN: z.string().optional(),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info')
 });

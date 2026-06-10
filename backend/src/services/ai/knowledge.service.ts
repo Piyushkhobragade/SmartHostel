@@ -1,5 +1,5 @@
 import prisma from '../../lib/prisma';
-import { chat, OllamaMessage } from './ollama';
+import { chat, AiMessage } from './gemini';
 import { sanitizeInput, budgetContext, validateResponse } from '../../utils/promptSecurity';
 import { logger } from '../../lib/logger';
 
@@ -105,7 +105,7 @@ export async function answerQuestion(question: string): Promise<KnowledgeAnswer>
     const contextBlock = budgetContext(rawContextBlock);
 
     // 3. Build the conversation for Qwen3
-    const messages: OllamaMessage[] = [
+    const messages: AiMessage[] = [
         { role: 'system', content: SYSTEM_PROMPT },
         {
             role: 'user',

@@ -1,5 +1,5 @@
 import prisma from '../../lib/prisma';
-import { chat, OllamaMessage } from './ollama';
+import { chat, AiMessage } from './gemini';
 import {
     sanitizeInput,
     budgetContext,
@@ -216,7 +216,7 @@ export async function wardenChat(
     const operationalContext = budgetContext(rawContext);
 
     // 4. Build message history for Qwen3
-    const ollamaMessages: OllamaMessage[] = [
+    const ollamaMessages: AiMessage[] = [
         { role: 'system', content: WARDEN_SYSTEM_PROMPT },
         {
             role: 'user',
@@ -282,7 +282,7 @@ export async function generateMorningBriefing(): Promise<string> {
     const rawContext = await getOperationalContext();
     const context = budgetContext(rawContext);
 
-    const messages: OllamaMessage[] = [
+    const messages: AiMessage[] = [
         { role: 'system', content: WARDEN_SYSTEM_PROMPT },
         {
             role: 'user',

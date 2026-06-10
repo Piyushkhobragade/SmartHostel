@@ -1,5 +1,5 @@
 import prisma from '../../lib/prisma';
-import { generate } from './ollama';
+import { generate } from './gemini';
 
 /**
  * Intelligence Service

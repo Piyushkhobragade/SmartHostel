@@ -21,7 +21,7 @@ import dashboardRoutes from './routes/dashboard.routes';
 import { verifyToken } from './middleware/auth.middleware';
 import { initializeDatabase } from './utils/dbInit';
 import { seedKnowledgeDocuments } from './services/ai/knowledge.service';
-import { startupDiagnostics } from './services/ai/ollama';
+import { startupDiagnostics } from './services/ai/gemini';
 import { startScheduler, stopScheduler } from './services/scheduler';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
