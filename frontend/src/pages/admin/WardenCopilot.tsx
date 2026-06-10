@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { copilotAPI } from '../../services/api';
 import { Send, Bot, User, Loader2, Database, AlertTriangle, ShieldCheck, Info, List, MessageSquare, Plus } from 'lucide-react';
+import MarkdownMessage from '../../components/MarkdownMessage';
 
 interface CopilotResponse {
   answer: string;
@@ -300,7 +301,7 @@ export default function WardenCopilot() {
                         <span className="text-slate-500 font-medium">Analyzing operational data...</span>
                       </div>
                     ) : (
-                      <div className="whitespace-pre-wrap">{message.content}</div>
+                      <MarkdownMessage content={message.content} />
                     )}
                   </div>
                   

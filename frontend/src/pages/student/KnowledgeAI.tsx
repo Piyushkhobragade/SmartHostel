@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { studentAPI } from '../../services/api';
 import { Send, Bot, User, Loader2, AlertCircle, ChevronDown, Database, FileText } from 'lucide-react';
+import MarkdownMessage from '../../components/MarkdownMessage';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 
@@ -113,7 +114,7 @@ function ChatBubble({ message }: { message: Message }) {
                             <span style={{ color: 'rgb(var(--text-muted))' }}>Thinking…</span>
                         </div>
                     ) : (
-                        <div className="whitespace-pre-wrap">{message.content}</div>
+                        <MarkdownMessage content={message.content} />
                     )}
                 </div>
 
