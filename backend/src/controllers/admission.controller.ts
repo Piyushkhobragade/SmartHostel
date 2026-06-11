@@ -44,12 +44,28 @@ export const completeAdmission = async (req: Request, res: Response) => {
         res.json(result);
     } catch (error: any) {
         console.error("COMPLETE ADMISSION ERROR:", error);
-        if (error.message.includes('full capacity')) {
+
+        // Unique constraint — email or phone already registered
+        if (
+            error.code === 'P2002' ||
+            (error.message && error.message.toLowerCase().includes('unique constraint'))
+        ) {
+            const field = error.meta?.target?.[0] || 'email or phone';
+            return res.status(409).json({
+                error: `A resident with this ${field} is already registered. Please use different contact details.`
+            });
+        }
+
+        if (error.message && error.message.includes('full capacity')) {
+            return res.status(409).json({ error: error.message });
+        }
+        if (error.message && error.message.includes('already registered')) {
             return res.status(409).json({ error: error.message });
         }
         res.status(500).json({ error: error.message || 'Failed to complete admission' });
     }
 };
+
 
 export const processBulkAdmission = async (req: Request, res: Response) => {
     try {
