@@ -110,11 +110,11 @@ export const askQuestion = async (req: AuthRequest, res: Response) => {
         if (error instanceof InputTooLongError) {
             return res.status(400).json({ error: error.message });
         }
-        // 503: Ollama unavailable
-        if (error.message?.includes('timed out') || error.message?.includes('Ollama')) {
-            logger.warn({ err: error.message }, 'Knowledge ask: Ollama unavailable');
+        // 503: AI service unavailable
+        if (error.message?.includes('timed out') || error.message?.includes('Ollama') || error.message?.includes('503')) {
+            logger.warn({ err: error.message }, 'Knowledge ask: AI service unavailable');
             return res.status(503).json({
-                error: 'AI service is unavailable. Please ensure Ollama is running with the qwen2.5:3b model.',
+                error: 'AI service is temporarily unavailable. Please try again in a moment.',
                 details: error.message,
             });
         }

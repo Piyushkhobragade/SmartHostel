@@ -50,3 +50,13 @@ coverage/
 # Misc
 .cache/
 minikube-linux-amd64
+
+# Root environment file (Docker Compose secrets)
+/.env
+
+# Debug and error output files
+*_errors.txt
+*_errors_force.txt
+lint-output.txt
+test-ai.js
+test-*.js
