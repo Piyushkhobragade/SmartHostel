@@ -175,7 +175,7 @@ export default function WardenCopilot() {
         m.isLoading ? {
           id: Date.now().toString() + '-err',
           role: 'assistant',
-          content: 'Sorry, I encountered an error communicating with the AI service. Please try again.',
+          content: `The Copilot couldn't process that request. This may happen if the backend is restarting. Please try again in a moment.`,
         } : m
       ));
     } finally {
@@ -248,7 +248,7 @@ export default function WardenCopilot() {
               </div>
               <div>
                 <h1 className="text-lg font-bold text-slate-800 dark:text-white leading-tight">AI Warden Copilot</h1>
-                <p className="text-[11px] font-medium text-slate-500">Qwen3:8b Operational Intelligence</p>
+                <p className="text-[11px] font-medium text-slate-500">Operational Intelligence</p>
               </div>
             </div>
           </div>
@@ -270,7 +270,7 @@ export default function WardenCopilot() {
                 {['Generate a morning operational briefing', 'Show me urgent maintenance issues', 'Who has the highest overdue fees?', 'Are there any visitors still on premises?'].map(q => (
                   <button
                     key={q}
-                    onClick={() => { setInput(q); sendMessage(); }}
+                    onClick={() => { setInput(q); setTimeout(() => { const btn = document.querySelector('[data-copilot-send]') as HTMLButtonElement; btn?.click(); }, 50); }}
                     className="p-3 text-sm text-left bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-indigo-400 hover:shadow-md transition-all text-slate-700 dark:text-slate-300"
                   >
                     {q}
@@ -334,6 +334,7 @@ export default function WardenCopilot() {
             <button
               onClick={sendMessage}
               disabled={loading || !input.trim()}
+              data-copilot-send
               className="w-10 h-10 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center transition-colors disabled:opacity-50 shrink-0 mb-1"
             >
               <Send className="w-4 h-4" />

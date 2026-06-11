@@ -211,38 +211,48 @@ export async function wardenChat(
     // 2. Sanitize user input (Phase 7B: injection protection + length limit)
     const safeMessage = sanitizeInput(message, { maxChars: 2_000, context: 'warden message' });
 
-    // 3. Pull live operational context and apply context window budget
+    // 3. Pull live operational context
     const rawContext = await getOperationalContext();
     const operationalContext = budgetContext(rawContext);
 
-    // 4. Build message history for Qwen3
-    const ollamaMessages: AiMessage[] = [
-        { role: 'system', content: WARDEN_SYSTEM_PROMPT },
-        {
-            role: 'user',
-            content: `Here is the current real-time hostel operational data:\n\n${operationalContext}\n\nUse this data to answer the warden's questions accurately.`
-        },
-        { role: 'assistant', content: 'Understood. I have reviewed the current operational snapshot. How can I assist you?' },
-    ];
+    // 4. Try AI chat, fall back to data-driven response
+    let answer: string;
 
-    // Add conversation history (up to last 20 messages)
-    for (const msg of conversation.messages) {
-        ollamaMessages.push({
-            role: msg.role as 'user' | 'assistant',
-            content: msg.content,
+    try {
+        // Build message history for Gemini
+        const aiMessages: AiMessage[] = [
+            { role: 'system', content: WARDEN_SYSTEM_PROMPT },
+            {
+                role: 'user',
+                content: `Here is the current real-time hostel operational data:\n\n${operationalContext}\n\nUse this data to answer the warden's questions accurately.`
+            },
+            { role: 'assistant', content: 'Understood. I have reviewed the current operational snapshot. How can I assist you?' },
+        ];
+
+        // Add conversation history (up to last 20 messages)
+        for (const msg of conversation.messages) {
+            aiMessages.push({
+                role: msg.role as 'user' | 'assistant',
+                content: msg.content,
+            });
+        }
+
+        // Add current sanitized user message
+        aiMessages.push({ role: 'user', content: safeMessage });
+
+        const rawAnswer = await chat(aiMessages, { temperature: 0.4, timeout: 240_000 });
+        answer = validateResponse(rawAnswer, {
+            fallback: '',
         });
+
+        // If validation returned empty, use fallback
+        if (!answer) throw new Error('Empty AI response');
+    } catch {
+        // AI unavailable — return the operational data directly as the answer
+        answer = `**AI service is currently offline.** Here is the live operational data for your reference:\n\n${rawContext}\n\n---\n*To enable AI-powered analysis, add a \`GEMINI_API_KEY\` to your \`.env\` file. The operational data above is always live from the database.*`;
     }
 
-    // Add current sanitized user message — injected AFTER system prompt, never before
-    ollamaMessages.push({ role: 'user', content: safeMessage });
-
-    // 5. Get Qwen3 response and validate
-    const rawAnswer = await chat(ollamaMessages, { temperature: 0.4, timeout: 240_000 });
-    const answer = validateResponse(rawAnswer, {
-        fallback: 'I was unable to generate a response to that question. Please try rephrasing.',
-    });
-
-    // 6. Persist both messages (use safeMessage for stored user content)
+    // 5. Persist both messages
     await prisma.copilotMessage.createMany({
         data: [
             { conversationId: conversation.id, role: 'user', content: safeMessage },
@@ -250,11 +260,10 @@ export async function wardenChat(
         ]
     });
 
-    // 7. Extract evidence panel using shared prompt security helpers
+    // 6. Extract evidence panel
     const severity = extractSeverity(answer);
     const recommendation = extractRecommendation(answer);
 
-    // Build data points list from what was in context
     const dataPoints: string[] = [];
     if (answer.toLowerCase().includes('attendance')) dataPoints.push('Today\'s attendance data');
     if (answer.toLowerCase().includes('maintenance')) dataPoints.push('Open maintenance requests');
@@ -274,6 +283,7 @@ export async function wardenChat(
         }
     };
 }
+
 
 /**
  * Generate a data-driven morning briefing without AI.
