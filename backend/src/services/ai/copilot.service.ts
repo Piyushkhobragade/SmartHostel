@@ -276,27 +276,146 @@ export async function wardenChat(
 }
 
 /**
- * Generate the morning briefing — a proactive summary the warden sees on login.
+ * Generate a data-driven morning briefing without AI.
+ * Used when GEMINI_API_KEY is not set.
+ */
+async function generateDataBriefing(): Promise<string> {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const [
+        totalRooms, totalResidents, activeResidents,
+        todayAttendance, openMaintenance, urgentMaintenance,
+        overdueInvoices, pendingInvoices, activeVisitors, recentAlerts,
+    ] = await Promise.all([
+        prisma.room.count(),
+        prisma.resident.count(),
+        prisma.resident.count({ where: { status: 'ACTIVE' } }),
+        prisma.attendanceLog.findMany({
+            where: { date: { gte: today } },
+            include: { resident: { select: { fullName: true } } },
+        }),
+        prisma.maintenanceRequest.count({ where: { status: { in: ['OPEN', 'IN_PROGRESS'] } } }),
+        prisma.maintenanceRequest.findMany({
+            where: { status: { in: ['OPEN', 'IN_PROGRESS'] }, priority: 'URGENT' },
+            include: { resident: { select: { fullName: true } } },
+            take: 5,
+        }),
+        prisma.feeInvoice.findMany({
+            where: { status: 'OVERDUE' },
+            include: { resident: { select: { fullName: true } } },
+            orderBy: { amount: 'desc' }, take: 10,
+        }),
+        prisma.feeInvoice.count({ where: { status: 'PENDING' } }),
+        prisma.visitorLog.count({ where: { checkOutTime: null } }),
+        prisma.alert.findMany({ where: { status: 'ACTIVE' }, orderBy: { createdAt: 'desc' }, take: 5 }),
+    ]);
+
+    const presentToday = todayAttendance.filter(a => a.status === 'PRESENT').length;
+    const absentToday = todayAttendance.filter(a => a.status === 'ABSENT').length;
+    const attendanceRate = todayAttendance.length > 0
+        ? Math.round((presentToday / todayAttendance.length) * 100) : null;
+    const totalOverdue = overdueInvoices.reduce((s, i) => s + i.amount, 0);
+    const absentNames = todayAttendance.filter(a => a.status === 'ABSENT').map(a => a.resident.fullName);
+
+    const dateStr = now.toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Kolkata' });
+    const timeStr = now.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Kolkata' });
+
+    const lines: string[] = [];
+    lines.push(`## 🌅 Morning Briefing — ${dateStr}`);
+    lines.push(`*Generated at ${timeStr} IST*`);
+    lines.push('');
+
+    // Occupancy
+    lines.push('### 🏠 Occupancy');
+    lines.push(`- **${activeResidents}** active residents across **${totalRooms}** rooms`);
+    if (totalResidents !== activeResidents) lines.push(`- ${totalResidents - activeResidents} inactive/suspended accounts`);
+    lines.push('');
+
+    // Attendance
+    lines.push('### 📋 Attendance');
+    if (todayAttendance.length > 0) {
+        lines.push(`- ${presentToday} present · ${absentToday} absent · **${attendanceRate}% attendance rate**`);
+        if (absentNames.length > 0) lines.push(`- Absent: ${absentNames.slice(0, 5).join(', ')}${absentNames.length > 5 ? ` +${absentNames.length - 5} more` : ''}`);
+    } else {
+        lines.push('- ⚠️ **Attendance not yet marked for today**');
+    }
+    lines.push('');
+
+    // Maintenance
+    lines.push('### 🔧 Maintenance');
+    if (urgentMaintenance.length > 0) {
+        lines.push(`- 🔴 **${urgentMaintenance.length} URGENT** issue(s) need immediate attention:`);
+        urgentMaintenance.forEach(m => lines.push(`  - ${m.category}: ${m.description.slice(0, 60)}`));
+    }
+    lines.push(`- ${openMaintenance} open/in-progress requests total`);
+    if (openMaintenance === 0) lines.push('- ✅ No pending maintenance issues');
+    lines.push('');
+
+    // Fees
+    lines.push('### 💰 Fees & Collections');
+    if (overdueInvoices.length > 0) {
+        lines.push(`- 🔴 **${overdueInvoices.length} overdue** invoices — ₹${totalOverdue.toLocaleString('en-IN')} outstanding`);
+        overdueInvoices.slice(0, 3).forEach(i => lines.push(`  - ${i.resident.fullName}: ₹${i.amount.toLocaleString('en-IN')}`));
+    } else {
+        lines.push('- ✅ No overdue invoices');
+    }
+    if (pendingInvoices > 0) lines.push(`- ${pendingInvoices} invoices pending payment`);
+    lines.push('');
+
+    // Visitors
+    lines.push('### 👥 Visitors');
+    if (activeVisitors > 0) {
+        lines.push(`- ⚠️ **${activeVisitors}** visitor(s) currently on premises`);
+    } else {
+        lines.push('- No visitors currently on premises');
+    }
+    lines.push('');
+
+    // Alerts
+    if (recentAlerts.length > 0) {
+        lines.push('### 🚨 Active Alerts');
+        recentAlerts.forEach(a => lines.push(`- [${a.severity}] **${a.title}**: ${a.description}`));
+        lines.push('');
+    }
+
+    // Action items
+    lines.push('### ✅ Today\'s Action Items');
+    const actions: string[] = [];
+    if (todayAttendance.length === 0) actions.push('Mark today\'s attendance immediately');
+    if (urgentMaintenance.length > 0) actions.push(`Resolve ${urgentMaintenance.length} urgent maintenance issue(s)`);
+    if (overdueInvoices.length > 0) actions.push(`Follow up on ₹${totalOverdue.toLocaleString('en-IN')} in overdue fees`);
+    if (activeVisitors > 0) actions.push(`Verify ${activeVisitors} visitor(s) on premises`);
+    if (recentAlerts.length > 0) actions.push('Review and resolve active alerts');
+    if (actions.length === 0) actions.push('All clear — no immediate action required');
+    actions.forEach((a, i) => lines.push(`${i + 1}. ${a}`));
+
+    return lines.join('\n');
+}
+
+/**
+ * Generate the morning briefing — tries Gemini AI first, falls back to data-driven report.
  */
 export async function generateMorningBriefing(): Promise<string> {
-    const rawContext = await getOperationalContext();
-    const context = budgetContext(rawContext);
+    // Try AI-powered briefing if API key is available
+    try {
+        const rawContext = await getOperationalContext();
+        const context = budgetContext(rawContext);
 
-    const messages: AiMessage[] = [
-        { role: 'system', content: WARDEN_SYSTEM_PROMPT },
-        {
-            role: 'user',
-            content: `${context}\n\nGenerate a concise morning briefing for the warden. Cover:
-1. Current occupancy and attendance status
-2. Any urgent maintenance that needs immediate attention
-3. Fee collection status and overdue amounts
-4. Any active alerts or concerns
-5. Top 3 action items for today
+        const messages: AiMessage[] = [
+            { role: 'system', content: WARDEN_SYSTEM_PROMPT },
+            {
+                role: 'user',
+                content: `${context}\n\nGenerate a concise morning briefing for the warden. Cover:\n1. Current occupancy and attendance status\n2. Any urgent maintenance that needs immediate attention\n3. Fee collection status and overdue amounts\n4. Any active alerts or concerns\n5. Top 3 action items for today\n\nKeep it brief — the warden reads this in under 2 minutes.`
+            }
+        ];
 
-Keep it brief — the warden reads this in under 2 minutes.`
-        }
-    ];
-
-    const raw = await chat(messages, { temperature: 0.3 });
-    return validateResponse(raw, { fallback: 'Morning briefing unavailable. Please try again.' });
+        const raw = await chat(messages, { temperature: 0.3 });
+        return validateResponse(raw, { fallback: '' });
+    } catch {
+        // AI unavailable (no API key, quota, network) — use data-driven fallback
+        return generateDataBriefing();
+    }
 }
