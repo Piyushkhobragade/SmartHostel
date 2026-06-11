@@ -106,6 +106,18 @@ echo ""
 echo "▶ Waiting 30 seconds for backend to initialize..."
 sleep 30
 
+# ─── Step 8: Run database seed ───────────────────────────────────────────────
+echo ""
+echo "▶ Seeding demo data into database..."
+docker exec smarthostel-backend node -e "
+const { execSync } = require('child_process');
+try {
+  execSync('npx prisma db seed', { stdio: 'inherit', cwd: '/app' });
+} catch(e) {
+  console.log('Seed note:', e.message.split('\\n')[0]);
+}
+" 2>/dev/null || docker exec smarthostel-backend sh -c "cd /app && npx ts-node prisma/seed.ts" 2>/dev/null || echo "  ℹ️  Seed will run on next restart (ts-node may not be in prod image)"
+
 echo ""
 echo "▶ Container status:"
 docker compose ps

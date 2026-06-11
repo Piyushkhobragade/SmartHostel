@@ -9,5 +9,6 @@
         "noImplicitAny": false,
         "strict": true,
         "skipLibCheck": true
-    }
+    },
+    "exclude": ["prisma", "node_modules", "dist"]
 }
