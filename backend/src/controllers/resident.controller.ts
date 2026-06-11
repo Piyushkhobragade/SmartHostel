@@ -10,6 +10,7 @@ export const getResidents = async (req: Request, res: Response) => {
         const result = await residentService.getResidents({ page, limit, status });
         res.json(result);
     } catch (error) {
+        console.error("GET RESIDENTS ERROR:", error);
         res.status(500).json({ error: 'Failed to fetch residents' });
     }
 };

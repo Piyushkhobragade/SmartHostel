@@ -18,6 +18,7 @@ import copilotRoutes from './routes/copilot.routes';
 import intelligenceRoutes from './routes/intelligence.routes';
 import digitaltwinRoutes from './routes/digitaltwin.routes';
 import dashboardRoutes from './routes/dashboard.routes';
+import admissionRoutes from './routes/admission.routes';
 import { verifyToken } from './middleware/auth.middleware';
 import { initializeDatabase } from './utils/dbInit';
 import { seedKnowledgeDocuments } from './services/ai/knowledge.service';
@@ -62,6 +63,7 @@ app.use('/api/auth/login', authLimiter);
 app.use('/api/auth', authRoutes);
 
 // Protected routes (require authentication + role-based access)
+app.use('/api/admissions', verifyToken, admissionRoutes);
 app.use('/api/residents', verifyToken, residentRoutes);
 app.use('/api/rooms', verifyToken, roomRoutes);
 app.use('/api/attendance', verifyToken, attendanceRoutes);

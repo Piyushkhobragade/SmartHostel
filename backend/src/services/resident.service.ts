@@ -1,4 +1,5 @@
 import prisma from '../lib/prisma';
+import { ResidentStatus } from '@prisma/client';
 
 export const residentService = {
     async getResidents(filters: { page?: number; limit?: number; status?: string }) {
@@ -7,7 +8,7 @@ export const residentService = {
         const skip = (page - 1) * limit;
 
         const where: any = {};
-        if (filters.status) where.status = filters.status;
+        if (filters.status) where.status = filters.status as ResidentStatus;
 
         const [residents, total] = await Promise.all([
             prisma.resident.findMany({
@@ -33,7 +34,7 @@ export const residentService = {
                     fullName: data.fullName,
                     email: data.email,
                     phone: data.phone,
-                    status: data.status || 'ACTIVE',
+                    status: (data.status as ResidentStatus) || ResidentStatus.ACTIVE,
                     roomId: data.roomId,
                 },
             });
@@ -62,7 +63,7 @@ export const residentService = {
                     fullName: data.fullName,
                     email: data.email,
                     phone: data.phone,
-                    status: data.status,
+                    status: data.status ? (data.status as ResidentStatus) : undefined,
                     roomId: data.roomId,
                 },
             });

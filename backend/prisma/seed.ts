@@ -9,7 +9,7 @@
  * Or:  npx prisma db seed
  */
 
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, ResidentStatus } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -89,30 +89,30 @@ async function main() {
 
   // ── 3. Residents ──────────────────────────────────────────────────────────
   const residentsData = [
-    { fullName: 'Arjun Sharma',      email: 'arjun.sharma@student.edu',   phone: '9876501001', roomNumber: 'A-101', status: 'ACTIVE' },
-    { fullName: 'Rahul Mehta',       email: 'rahul.mehta@student.edu',    phone: '9876501002', roomNumber: 'A-101', status: 'ACTIVE' },
-    { fullName: 'Priya Patel',       email: 'priya.patel@student.edu',    phone: '9876501003', roomNumber: 'A-102', status: 'ACTIVE' },
-    { fullName: 'Sneha Reddy',       email: 'sneha.reddy@student.edu',    phone: '9876501004', roomNumber: 'A-102', status: 'ACTIVE' },
-    { fullName: 'Vikram Singh',      email: 'vikram.singh@student.edu',   phone: '9876501005', roomNumber: 'A-103', status: 'ACTIVE' },
-    { fullName: 'Ananya Krishnan',   email: 'ananya.k@student.edu',       phone: '9876501006', roomNumber: 'A-104', status: 'ACTIVE' },
-    { fullName: 'Rohan Das',         email: 'rohan.das@student.edu',      phone: '9876501007', roomNumber: 'A-104', status: 'ACTIVE' },
-    { fullName: 'Kavya Nair',        email: 'kavya.nair@student.edu',     phone: '9876501008', roomNumber: 'A-104', status: 'ACTIVE' },
-    { fullName: 'Aditya Kumar',      email: 'aditya.kumar@student.edu',   phone: '9876501009', roomNumber: 'A-201', status: 'ACTIVE' },
-    { fullName: 'Divya Menon',       email: 'divya.menon@student.edu',    phone: '9876501010', roomNumber: 'A-201', status: 'ACTIVE' },
-    { fullName: 'Suresh Babu',       email: 'suresh.babu@student.edu',    phone: '9876501011', roomNumber: 'A-202', status: 'ACTIVE' },
-    { fullName: 'Meena Iyer',        email: 'meena.iyer@student.edu',     phone: '9876501012', roomNumber: 'A-202', status: 'INACTIVE' },
-    { fullName: 'Karthik Rao',       email: 'karthik.rao@student.edu',    phone: '9876501013', roomNumber: 'A-203', status: 'ACTIVE' },
-    { fullName: 'Pooja Sharma',      email: 'pooja.sharma@student.edu',   phone: '9876501014', roomNumber: 'B-101', status: 'ACTIVE' },
-    { fullName: 'Nikhil Verma',      email: 'nikhil.verma@student.edu',   phone: '9876501015', roomNumber: 'B-101', status: 'ACTIVE' },
-    { fullName: 'Bhavana Guptha',    email: 'bhavana.g@student.edu',      phone: '9876501016', roomNumber: 'B-102', status: 'ACTIVE' },
-    { fullName: 'Harish Pillai',     email: 'harish.pillai@student.edu',  phone: '9876501017', roomNumber: 'B-102', status: 'SUSPENDED' },
-    { fullName: 'Lakshmi Devi',      email: 'lakshmi.d@student.edu',      phone: '9876501018', roomNumber: 'B-102', status: 'ACTIVE' },
-    { fullName: 'Sanjay Patil',      email: 'sanjay.patil@student.edu',   phone: '9876501019', roomNumber: 'B-201', status: 'ACTIVE' },
-    { fullName: 'Ritu Agarwal',      email: 'ritu.agarwal@student.edu',   phone: '9876501020', roomNumber: 'B-201', status: 'ACTIVE' },
-    { fullName: 'Deepak Joshi',      email: 'deepak.joshi@student.edu',   phone: '9876501021', roomNumber: 'B-202', status: 'ACTIVE' },
-    { fullName: 'Swati Chauhan',     email: 'swati.chauhan@student.edu',  phone: '9876501022', roomNumber: 'C-101', status: 'ACTIVE' },
-    { fullName: 'Manish Tiwari',     email: 'manish.tiwari@student.edu',  phone: '9876501023', roomNumber: 'C-102', status: 'ACTIVE' },
-    { fullName: 'Geeta Pandey',      email: 'geeta.pandey@student.edu',   phone: '9876501024', roomNumber: 'C-102', status: 'ACTIVE' },
+    { fullName: 'Arjun Sharma',      email: 'arjun.sharma@student.edu',   phone: '9876501001', roomNumber: 'A-101', status: ResidentStatus.ACTIVE },
+    { fullName: 'Rahul Mehta',       email: 'rahul.mehta@student.edu',    phone: '9876501002', roomNumber: 'A-101', status: ResidentStatus.ACTIVE },
+    { fullName: 'Priya Patel',       email: 'priya.patel@student.edu',    phone: '9876501003', roomNumber: 'A-102', status: ResidentStatus.ACTIVE },
+    { fullName: 'Sneha Reddy',       email: 'sneha.reddy@student.edu',    phone: '9876501004', roomNumber: 'A-102', status: ResidentStatus.ACTIVE },
+    { fullName: 'Vikram Singh',      email: 'vikram.singh@student.edu',   phone: '9876501005', roomNumber: 'A-103', status: ResidentStatus.ACTIVE },
+    { fullName: 'Ananya Krishnan',   email: 'ananya.k@student.edu',       phone: '9876501006', roomNumber: 'A-104', status: ResidentStatus.ACTIVE },
+    { fullName: 'Rohan Das',         email: 'rohan.das@student.edu',      phone: '9876501007', roomNumber: 'A-104', status: ResidentStatus.ACTIVE },
+    { fullName: 'Kavya Nair',        email: 'kavya.nair@student.edu',     phone: '9876501008', roomNumber: 'A-104', status: ResidentStatus.ACTIVE },
+    { fullName: 'Aditya Kumar',      email: 'aditya.kumar@student.edu',   phone: '9876501009', roomNumber: 'A-201', status: ResidentStatus.ACTIVE },
+    { fullName: 'Divya Menon',       email: 'divya.menon@student.edu',    phone: '9876501010', roomNumber: 'A-201', status: ResidentStatus.ACTIVE },
+    { fullName: 'Suresh Babu',       email: 'suresh.babu@student.edu',    phone: '9876501011', roomNumber: 'A-202', status: ResidentStatus.ACTIVE },
+    { fullName: 'Meena Iyer',        email: 'meena.iyer@student.edu',     phone: '9876501012', roomNumber: 'A-202', status: ResidentStatus.INACTIVE },
+    { fullName: 'Karthik Rao',       email: 'karthik.rao@student.edu',    phone: '9876501013', roomNumber: 'A-203', status: ResidentStatus.ACTIVE },
+    { fullName: 'Pooja Sharma',      email: 'pooja.sharma@student.edu',   phone: '9876501014', roomNumber: 'B-101', status: ResidentStatus.ACTIVE },
+    { fullName: 'Nikhil Verma',      email: 'nikhil.verma@student.edu',   phone: '9876501015', roomNumber: 'B-101', status: ResidentStatus.ACTIVE },
+    { fullName: 'Bhavana Guptha',    email: 'bhavana.g@student.edu',      phone: '9876501016', roomNumber: 'B-102', status: ResidentStatus.ACTIVE },
+    { fullName: 'Harish Pillai',     email: 'harish.pillai@student.edu',  phone: '9876501017', roomNumber: 'B-102', status: ResidentStatus.SUSPENDED },
+    { fullName: 'Lakshmi Devi',      email: 'lakshmi.d@student.edu',      phone: '9876501018', roomNumber: 'B-102', status: ResidentStatus.ACTIVE },
+    { fullName: 'Sanjay Patil',      email: 'sanjay.patil@student.edu',   phone: '9876501019', roomNumber: 'B-201', status: ResidentStatus.ACTIVE },
+    { fullName: 'Ritu Agarwal',      email: 'ritu.agarwal@student.edu',   phone: '9876501020', roomNumber: 'B-201', status: ResidentStatus.ACTIVE },
+    { fullName: 'Deepak Joshi',      email: 'deepak.joshi@student.edu',   phone: '9876501021', roomNumber: 'B-202', status: ResidentStatus.ACTIVE },
+    { fullName: 'Swati Chauhan',     email: 'swati.chauhan@student.edu',  phone: '9876501022', roomNumber: 'C-101', status: ResidentStatus.ACTIVE },
+    { fullName: 'Manish Tiwari',     email: 'manish.tiwari@student.edu',  phone: '9876501023', roomNumber: 'C-102', status: ResidentStatus.ACTIVE },
+    { fullName: 'Geeta Pandey',      email: 'geeta.pandey@student.edu',   phone: '9876501024', roomNumber: 'C-102', status: ResidentStatus.ACTIVE },
   ];
 
   const residents = await Promise.all(

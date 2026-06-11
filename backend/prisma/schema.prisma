@@ -8,25 +8,39 @@ datasource db {
 }
 
 model User {
-  id            String   @id @default(uuid())
-  username      String   @unique
-  passwordHash  String
-  role          String   // ADMIN | STAFF | STUDENT
-  residentId    String?  @unique // Linked resident profile for STUDENT accounts
-  resident      Resident? @relation("UserResident", fields: [residentId], references: [id])
-  conversations CopilotConversation[]
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  id                 String   @id @default(uuid())
+  username           String   @unique
+  passwordHash       String
+  role               String   // ADMIN | STAFF | STUDENT
+  mustChangePassword Boolean  @default(true)
+  residentId         String?  @unique // Linked resident profile for STUDENT accounts
+  resident           Resident? @relation("UserResident", fields: [residentId], references: [id])
+  conversations      CopilotConversation[]
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+enum ResidentStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  SUSPENDED
 }
 
 model Resident {
-  id           String   @id @default(uuid())
+  id           String         @id @default(uuid())
   fullName     String
-  email        String   @unique
+  email        String         @unique
   phone        String
-  status       String   @default("ACTIVE")
+  status       ResidentStatus @default(ACTIVE)
   roomId       String?
-  room         Room?    @relation(fields: [roomId], references: [id])
+  room         Room?          @relation(fields: [roomId], references: [id])
+
+  dateOfBirth   DateTime?
+  bloodGroup    String?
+  parentName    String?
+  parentPhone   String?
+  parentAddress String?
 
   // Linked student account (optional)
   userAccount       User?     @relation("UserResident")
@@ -38,6 +52,7 @@ model Resident {
   maintenanceReqs   MaintenanceRequest[]
   messSubscriptions MessSubscription[]
   roomSwapRequests  RoomSwapRequest[]
+  documents         Document[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -45,6 +60,27 @@ model Resident {
   @@index([status])
   @@index([roomId])
   @@index([email])
+}
+
+model AdmissionDraft {
+  id        String   @id @default(uuid())
+  payload   Json
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([expiresAt])
+}
+
+model Document {
+  id         String   @id @default(uuid())
+  residentId String
+  resident   Resident @relation(fields: [residentId], references: [id])
+  type       String   // e.g., 'GOVT_ID', 'PHOTO', 'MEDICAL'
+  s3Key      String
+  uploadedAt DateTime @default(now())
+
+  @@index([residentId])
 }
 
 model Room {
@@ -235,6 +271,7 @@ model KnowledgeDocument {
 model OperationalEvent {
   id          String   @id @default(uuid())
   type        String
+  actorId     String?  // References User.id
   entityType  String
   entityId    String
   title       String
