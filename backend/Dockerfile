@@ -23,6 +23,7 @@ COPY tsconfig.json ./
 COPY src ./src
 
 RUN npm run build
+RUN npx tsc prisma/seed.ts --outDir dist/prisma --esModuleInterop --skipLibCheck
 
 
 FROM node:20-slim AS runtime
