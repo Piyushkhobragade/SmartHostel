@@ -6,6 +6,15 @@ export const createDraftSchema = z.object({
     phone: z.string().min(10),
     dateOfBirth: z.string().optional(),
     bloodGroup: z.string().optional(),
+    address: z.string().optional(),
+    parentName: z.string().optional(),
+    parentPhone: z.string().optional(),
+    parentAddress: z.string().optional(),
+    guardianEmail: z.string().optional(),
+    relationship: z.string().optional(),
+    roomId: z.string().uuid().optional(),
+    feeAmount: z.number().positive().optional(),
+    feeDescription: z.string().optional(),
 });
 
 export const updateDraftSchema = z.object({

@@ -113,38 +113,50 @@ export default function AdmissionsWizard() {
         setCurrentStep(s => Math.max(s - 1, 1));
     };
 
-    /* ── Final submission — create draft + complete ──────── */
+    /* ── Final submission ──────────────────────────────── */
     const handleComplete = async () => {
         setSubmitting(true);
         setError('');
         try {
-            // Step 1: create draft with all collected data
+            // Backend expects flat payload at top level:
+            // fullName, email, phone, dateOfBirth, bloodGroup,
+            // parentName, parentPhone, parentAddress,
+            // roomId, feeAmount, feeDescription
             const draftRes = await admissionsAPI.createDraft({
-                payload: { personalInfo, guardianInfo, roomId, feePlan }
+                fullName: personalInfo.fullName,
+                email: personalInfo.email,
+                phone: personalInfo.phone,
+                dateOfBirth: personalInfo.dateOfBirth || undefined,
+                bloodGroup: personalInfo.bloodGroup || undefined,
+                address: personalInfo.address || undefined,
+                parentName: guardianInfo.guardianName,
+                parentPhone: guardianInfo.guardianPhone,
+                parentAddress: guardianInfo.guardianAddress || undefined,
+                guardianEmail: guardianInfo.guardianEmail || undefined,
+                relationship: guardianInfo.relationship || undefined,
+                roomId,
+                feeAmount: feePlan.amount,
+                feeDescription: feePlan.description,
             });
-            const draftId = draftRes.data.id;
+            const draftId: string = draftRes.data.id;
 
-            // Step 2: complete admission (creates resident, user account, fee invoice)
-            const completeRes = await admissionsAPI.complete({
-                draftId,
-                feePlan: { amount: feePlan.amount, description: feePlan.description }
-            });
+            // Complete admission — only needs draftId
+            const completeRes = await admissionsAPI.complete({ draftId });
 
             setCredentials(completeRes.data.credentials);
             setResidentId(completeRes.data.residentId || draftId);
             setCompleted(true);
         } catch (e: unknown) {
-            const msg =
-                (e as { response?: { data?: { error?: string; message?: string } } })
-                    .response?.data?.error ||
-                (e as { response?: { data?: { message?: string } } })
-                    .response?.data?.message ||
-                'Admission failed. Please try again.';
+            const errData = (e as { response?: { data?: { error?: string; message?: string; fields?: { field: string; message: string }[] } } }).response?.data;
+            const msg = errData?.error || errData?.message
+                || (errData?.fields?.map((f: { field: string; message: string }) => `${f.field}: ${f.message}`).join(', '))
+                || 'Admission failed. Please check all fields and try again.';
             setError(msg);
         } finally {
             setSubmitting(false);
         }
     };
+
 
     /* ── Credential slip helpers ─────────────────────────── */
     const slipData = credentials ? {
