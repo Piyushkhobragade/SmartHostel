@@ -275,26 +275,20 @@ export default function Residents() {
                     searchFilter={searchFilter}
                     csvExport={{ filename: 'residents' }}
                     toolbarActions={
-                        <div className="flex gap-2">
-                            <Button variant="secondary" onClick={() => navigate('/admissions/new')}>
-                                <ClipboardList className="w-4 h-4 mr-2" />
-                                New Admission
-                            </Button>
-                            <Button onClick={() => setShowForm(true)}>
-                                <Plus className="w-4 h-4 mr-2" />
-                                Register Resident
-                            </Button>
-                        </div>
+                        <Button onClick={() => navigate('/admissions/new')}>
+                            <ClipboardList className="w-4 h-4 mr-2" />
+                            New Admission
+                        </Button>
                     }
                     emptyState={
                         <EmptyState
                             icon={UserPlus}
                             title="No residents found"
-                            description="Add new resident registrations here."
+                            description="Use New Admission to admit and create credentials for a student."
                             action={
-                                <Button onClick={() => setShowForm(true)}>
-                                    <Plus className="w-4 h-4 mr-2" />
-                                    Register Resident
+                                <Button onClick={() => navigate('/admissions/new')}>
+                                    <ClipboardList className="w-4 h-4 mr-2" />
+                                    New Admission
                                 </Button>
                             }
                         />
