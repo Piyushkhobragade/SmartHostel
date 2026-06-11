@@ -8,7 +8,7 @@ import Button from '../components/Button'
 import Input from '../components/Input'
 import Modal from '../components/Modal'
 import StatusBadge, { resolveVariant } from '../components/widgets/StatusBadge'
-import { Plus, Pencil, Trash2, X, User, Phone, Mail, Home, Clock, UserPlus, ClipboardList } from 'lucide-react'
+import { Pencil, Trash2, X, User, Phone, Mail, Home, Clock, UserPlus, ClipboardList } from 'lucide-react'
 import { useToast } from '../context/ToastContext'
 import EmptyState from '../components/ui/EmptyState'
 
