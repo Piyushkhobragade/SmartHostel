@@ -2,6 +2,7 @@ import prisma from '../lib/prisma';
 import bcrypt from 'bcryptjs';
 import crypto from 'crypto';
 import { ResidentStatus } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 
 export const admissionService = {
     async createDraft(payload: any) {
@@ -61,6 +62,16 @@ export const admissionService = {
 
         const roomId = payload.roomId;
         if (!roomId) throw new Error('Room selection is required to complete admission');
+
+        // PRE-FLIGHT: check uniqueness before entering the transaction
+        const emailExists = await prisma.resident.findFirst({ where: { email: payload.email } });
+        if (emailExists) {
+            throw new Error(`Email "${payload.email}" is already registered. Please use a different email address.`);
+        }
+        const phoneExists = await prisma.resident.findFirst({ where: { phone: payload.phone } });
+        if (phoneExists) {
+            throw new Error(`Phone "${payload.phone}" is already registered. Please use a different phone number.`);
+        }
 
         // Execute Transaction
         const result = await prisma.$transaction(async (tx) => {
@@ -183,6 +194,13 @@ export const admissionService = {
             isolationLevel: 'Serializable',
             maxWait: 5000,
             timeout: 10000
+        }).catch((err: unknown) => {
+            // Convert Prisma unique constraint violation into a readable error
+            if (err instanceof Prisma.PrismaClientKnownRequestError && err.code === 'P2002') {
+                const field = (err.meta?.target as string[] | undefined)?.[0] || 'field';
+                throw new Error(`A resident with this ${field} is already registered. Please use a different ${field}.`);
+            }
+            throw err;
         });
 
         return {
