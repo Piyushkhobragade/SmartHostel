@@ -67,12 +67,23 @@ export default function AdmissionsWizard() {
     const [roomId, setRoomId] = useState('');
     const [feePlan, setFeePlan] = useState({ amount: 5500, description: 'Monthly Hostel Fee' });
 
-    // Load available rooms on mount
+    // Load all rooms on mount — show available ones first, full ones grayed out
     useEffect(() => {
         roomsAPI.getAll()
             .then(r => {
-                const all = Array.isArray(r.data) ? r.data : (r.data?.data ?? []);
-                setRooms(all.filter((rm: RoomOption) => rm.currentOccupancy < rm.capacity));
+                const all: RoomOption[] = Array.isArray(r.data)
+                    ? r.data
+                    : Array.isArray(r.data?.data)
+                        ? r.data.data
+                        : [];
+                // Sort: available first, full last
+                const sorted = [...all].sort((a, b) => {
+                    const aFull = a.currentOccupancy >= a.capacity;
+                    const bFull = b.currentOccupancy >= b.capacity;
+                    if (aFull === bFull) return a.roomNumber.localeCompare(b.roomNumber);
+                    return aFull ? 1 : -1;
+                });
+                setRooms(sorted);
             })
             .catch(() => setRooms([]));
     }, []);
@@ -443,41 +454,58 @@ export default function AdmissionsWizard() {
                         <h2 className="text-lg font-bold mb-5" style={{ color: 'rgb(var(--text-primary))' }}>Room Assignment</h2>
                         {rooms.length === 0 ? (
                             <p className="text-center py-12" style={{ color: 'rgb(var(--text-muted))' }}>
-                                No rooms with available capacity found.
+                                Loading rooms...
                             </p>
                         ) : (
+                            <>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                                 {rooms.map(room => {
                                     const isSelected = roomId === room.id;
+                                    const isFull = room.currentOccupancy >= room.capacity;
                                     const spotsLeft = room.capacity - room.currentOccupancy;
                                     return (
                                         <button key={room.id} onClick={() => setRoomId(room.id)}
                                             className="p-4 rounded-xl text-left transition-all"
                                             style={{
-                                                background: isSelected ? 'rgba(var(--color-primary), 0.08)' : 'rgb(var(--bg-app))',
-                                                border: `2px solid ${isSelected ? 'rgb(var(--color-primary))' : 'rgb(var(--border-color))'}`,
-                                                boxShadow: isSelected ? '0 0 0 3px rgba(var(--color-primary),0.1)' : 'none',
+                                                background: isSelected
+                                                    ? 'rgba(var(--color-primary), 0.08)'
+                                                    : isFull
+                                                        ? 'rgba(var(--border-color), 0.3)'
+                                                        : 'rgb(var(--bg-app))',
+                                                border: `2px solid ${isSelected
+                                                    ? 'rgb(var(--color-primary))'
+                                                    : isFull
+                                                        ? 'rgba(var(--border-color), 0.5)'
+                                                        : 'rgb(var(--border-color))'}`,
+                                                opacity: isFull && !isSelected ? 0.6 : 1,
+                                                boxShadow: isSelected ? '0 0 0 3px rgba(var(--color-primary),0.15)' : 'none',
                                             }}>
                                             <div className="flex justify-between items-start mb-1">
                                                 <span className="font-bold text-base" style={{ color: 'rgb(var(--text-primary))' }}>
                                                     Room {room.roomNumber}
                                                 </span>
                                                 <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{
-                                                    background: 'rgba(var(--color-success), 0.12)',
-                                                    color: 'rgb(var(--color-success))',
+                                                    background: isFull
+                                                        ? 'rgba(var(--color-danger), 0.10)'
+                                                        : 'rgba(var(--color-success), 0.12)',
+                                                    color: isFull
+                                                        ? 'rgb(var(--color-danger))'
+                                                        : 'rgb(var(--color-success))',
                                                 }}>
-                                                    {spotsLeft} free
+                                                    {isFull ? 'FULL' : `${spotsLeft} free`}
                                                 </span>
                                             </div>
                                             <p className="text-xs" style={{ color: 'rgb(var(--text-muted))' }}>
-                                                Block {room.block} • Floor {room.floor} • {room.type}
+                                                Block {room.block || '—'} • Floor {room.floor || '—'} • {room.type}
                                             </p>
                                             <div className="mt-2 h-1.5 rounded-full overflow-hidden"
                                                 style={{ background: 'rgba(var(--border-color), 0.5)' }}>
                                                 <div className="h-full rounded-full transition-all"
                                                     style={{
-                                                        width: `${(room.currentOccupancy / room.capacity) * 100}%`,
-                                                        background: 'rgb(var(--color-primary))',
+                                                        width: `${Math.min((room.currentOccupancy / room.capacity) * 100, 100)}%`,
+                                                        background: isFull
+                                                            ? 'rgb(var(--color-danger))'
+                                                            : 'rgb(var(--color-success))',
                                                     }} />
                                             </div>
                                             <p className="text-xs mt-1" style={{ color: 'rgb(var(--text-muted))' }}>
@@ -487,7 +515,12 @@ export default function AdmissionsWizard() {
                                     );
                                 })}
                             </div>
+                            <p className="text-xs mt-3" style={{ color: 'rgb(var(--text-muted))' }}>
+                                Available rooms are shown first. Full rooms can still be selected if needed.
+                            </p>
+                            </>
                         )}
+
                         {!roomId && (
                             <p className="text-xs mt-4" style={{ color: 'rgb(var(--color-warning))' }}>
                                 Please select a room to continue.
