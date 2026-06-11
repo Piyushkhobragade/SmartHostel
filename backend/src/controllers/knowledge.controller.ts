@@ -5,6 +5,7 @@ import { isHealthy } from '../services/ai/gemini';
 import { AuthRequest } from '../middleware/auth.middleware';
 import { PromptInjectionError, InputTooLongError } from '../utils/promptSecurity';
 import { logger } from '../lib/logger';
+import { sanitizeMarkdown } from '../utils/sanitizer';
 
 /**
  * GET /api/knowledge
@@ -101,6 +102,7 @@ export const askQuestion = async (req: AuthRequest, res: Response) => {
         }
 
         const result = await answerQuestion(question.trim());
+        if (result.answer) result.answer = sanitizeMarkdown(result.answer);
         res.json(result);
     } catch (error: any) {
         // 400: Client input violations — do not log as server errors

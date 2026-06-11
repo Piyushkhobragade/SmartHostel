@@ -4,6 +4,7 @@ import prisma from '../lib/prisma';
 import { wardenChat, generateMorningBriefing } from '../services/ai/copilot.service';
 import { PromptInjectionError, InputTooLongError } from '../utils/promptSecurity';
 import { logger } from '../lib/logger';
+import { sanitizeMarkdown } from '../utils/sanitizer';
 
 /**
  * POST /api/copilot/chat
@@ -20,6 +21,7 @@ export const chat = async (req: AuthRequest, res: Response) => {
         }
 
         const result = await wardenChat(userId, message.trim(), conversationId);
+        if (result.answer) result.answer = sanitizeMarkdown(result.answer);
         res.json(result);
     } catch (error: any) {
         if (error instanceof PromptInjectionError) {
@@ -63,7 +65,7 @@ export const getConversations = async (req: AuthRequest, res: Response) => {
             id: c.id,
             title: c.title,
             messageCount: c._count.messages,
-            lastMessage: c.messages[0]?.content?.slice(0, 80) || '',
+            lastMessage: sanitizeMarkdown(c.messages[0]?.content?.slice(0, 80) || ''),
             updatedAt: c.updatedAt,
         })));
     } catch (error) {
@@ -86,6 +88,13 @@ export const getConversation = async (req: AuthRequest, res: Response) => {
         });
 
         if (!conversation) return res.status(404).json({ error: 'Conversation not found.' });
+        
+        // Sanitize existing messages just in case
+        conversation.messages = conversation.messages.map(m => ({
+            ...m,
+            content: m.role === 'ASSISTANT' ? sanitizeMarkdown(m.content) : m.content
+        }));
+
         res.json(conversation);
     } catch (error) {
         res.status(500).json({ error: 'Failed to fetch conversation.' });
@@ -114,7 +123,8 @@ export const deleteConversation = async (req: AuthRequest, res: Response) => {
  */
 export const getBriefing = async (req: AuthRequest, res: Response) => {
     try {
-        const briefing = await generateMorningBriefing();
+        let briefing = await generateMorningBriefing();
+        briefing = sanitizeMarkdown(briefing);
         res.json({
             briefing,
             generatedAt: new Date().toISOString(),

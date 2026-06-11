@@ -4,6 +4,7 @@ import prisma from '../lib/prisma';
 import { studentAsk } from '../services/ai/student.service';
 import { PromptInjectionError, InputTooLongError } from '../utils/promptSecurity';
 import { logger } from '../lib/logger';
+import { sanitizeMarkdown } from '../utils/sanitizer';
 
 /**
  * Helper to get residentId from JWT — all student endpoints use this.
@@ -327,6 +328,7 @@ export const askStudentAI = async (req: AuthRequest, res: Response) => {
         }
 
         const result = await studentAsk(residentId, question.trim());
+        if (result.answer) result.answer = sanitizeMarkdown(result.answer);
         res.json(result);
     } catch (error: any) {
         // 400: client input violations — do not log as server errors
