@@ -72,34 +72,28 @@ export async function initializeDatabase() {
         console.warn('⚠️ [DB-Init] Schema sync warning (non-fatal):', (error as any).stderr?.toString().slice(0, 200));
     }
 
-    // 3. Ensure Admin user exists
+    // 3. Ensure Admin user exists — ALWAYS sync password hash to match this deploy
     try {
-        console.log('👤 [DB-Init] Verifying default Admin user accounts...');
-        
-        // Let's connect the Prisma client to ensure it's loaded with the correct URL
-        const existingAdmin = await prisma.user.findUnique({
-            where: { username: 'admin' }
-        });
+        console.log('👤 [DB-Init] Syncing default Admin user...');
+        const passwordHash = await bcrypt.hash('Admin@123', 10);
 
-        if (existingAdmin) {
-            console.log('✅ [DB-Init] Default admin user already exists.');
-        } else {
-            console.log('➕ [DB-Init] Default admin user not found. Seeding admin user...');
-            const passwordHash = await bcrypt.hash('Admin@123', 10);
-            
-            await prisma.user.create({
-                data: {
-                    username: 'admin',
-                    passwordHash: passwordHash,
-                    role: 'ADMIN'
-                }
-            });
-            console.log('✅ [DB-Init] Default admin user seeded successfully!');
-            console.log('   Username: admin');
-            console.log('   Password: Admin@123');
-        }
+        await prisma.user.upsert({
+            where: { username: 'admin' },
+            create: {
+                username: 'admin',
+                passwordHash,
+                role: 'ADMIN',
+                mustChangePassword: false,
+            },
+            update: {
+                passwordHash,  // Always reset to known-good hash on every deploy
+                role: 'ADMIN',
+                mustChangePassword: false,
+            }
+        });
+        console.log('✅ [DB-Init] Admin user synced. Username: admin | Password: Admin@123');
     } catch (error) {
-        console.error('❌ [DB-Init] Error seeding admin user:', error);
+        console.error('❌ [DB-Init] Error syncing admin user:', error);
     }
 
     // 4. Ensure demo Student user exists
