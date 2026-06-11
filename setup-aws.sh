@@ -98,8 +98,12 @@ docker compose down 2>/dev/null || true
 
 # ─── Step 7: Build and start ─────────────────────────────────────────────────
 echo ""
-echo "▶ Starting SmartHostel (build is cached, will be fast)..."
-docker compose up --build -d
+echo "▶ Building fresh images (no cache — ensures latest code)..."
+docker compose build --no-cache
+
+echo ""
+echo "▶ Starting SmartHostel..."
+docker compose up -d
 
 # ─── Step 8: Wait and verify ─────────────────────────────────────────────────
 echo ""
