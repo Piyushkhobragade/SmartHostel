@@ -60,7 +60,8 @@ export const login = async (req: Request, res: Response) => {
                 id: user.id,
                 username: user.username,
                 role: user.role,
-                residentId: user.residentId || undefined
+                residentId: user.residentId || undefined,
+                mustChangePassword: user.mustChangePassword
             }
         });
 
@@ -118,10 +119,10 @@ export const changePassword = async (req: AuthRequest, res: Response) => {
         // Hash new password
         const newHash = await bcrypt.hash(newPassword, 10);
 
-        // Update password
+        // Update password and clear mustChangePassword flag
         await prisma.user.update({
             where: { id: userId },
-            data: { passwordHash: newHash }
+            data: { passwordHash: newHash, mustChangePassword: false }
         });
 
         res.json({ message: 'Password changed successfully' });

@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import AccessDenied from './AccessDenied';
 
@@ -9,6 +9,7 @@ interface ProtectedRouteProps {
 
 export default function ProtectedRoute({ children, allowedRoles }: ProtectedRouteProps) {
     const { isAuthenticated, loading, user } = useAuth();
+    const location = useLocation();
 
     // Show loading spinner while checking auth
     if (loading) {
@@ -25,6 +26,11 @@ export default function ProtectedRoute({ children, allowedRoles }: ProtectedRout
     // Redirect to login if not authenticated
     if (!isAuthenticated) {
         return <Navigate to="/login" replace />;
+    }
+
+    // First-login password change gate (Students only, Admin/Staff exempted)
+    if (user?.mustChangePassword && user?.role === 'STUDENT' && location.pathname !== '/change-password') {
+        return <Navigate to="/change-password" replace />;
     }
 
     // Check role-based access if allowedRoles is specified

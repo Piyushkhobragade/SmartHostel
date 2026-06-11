@@ -175,4 +175,16 @@ export const authAPI = {
         api.post('/auth/forgot-password', data),
 };
 
+// Admissions API
+export const admissionsAPI = {
+    createDraft: (data: unknown) => api.post('/admissions/drafts', data),
+    updateDraft: (id: string, data: unknown) => api.put(`/admissions/drafts/${id}`, data),
+    getDraft: (id: string) => api.get(`/admissions/drafts/${id}`),
+    listDrafts: () => api.get('/admissions/drafts'),
+    deleteDraft: (id: string) => api.delete(`/admissions/drafts/${id}`),
+    complete: (data: { draftId: string; feePlan?: { amount: number; description: string } }) =>
+        api.post('/admissions/complete', data),
+    bulk: (data: unknown) => api.post('/admissions/bulk', data),
+};
+
 export default api;

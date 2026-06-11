@@ -38,6 +38,10 @@ const OperationalTimeline = lazy(() => import('./pages/admin/OperationalTimeline
 const DigitalTwin        = lazy(() => import('./pages/admin/DigitalTwin'))
 const KnowledgeManager   = lazy(() => import('./pages/admin/KnowledgeManager'))
 
+// Phase 8.3 — Admission wizard & first-login gate
+const AdmissionsWizard   = lazy(() => import('./pages/AdmissionsWizard'))
+const ChangePassword     = lazy(() => import('./pages/ChangePassword'))
+
 // ─── Suspense fallback ────────────────────────────────────────────────────────
 
 function PageLoader() {
@@ -111,6 +115,11 @@ function App() {
                       <KnowledgeManager />
                     </ProtectedRoute>
                   } />
+                  <Route path="admissions/new" element={
+                    <ProtectedRoute allowedRoles={['ADMIN']}>
+                      <AdmissionsWizard />
+                    </ProtectedRoute>
+                  } />
 
                   {/* ADMIN and STAFF */}
                   <Route path="attendance" element={
@@ -173,6 +182,13 @@ function App() {
 
                   {/* Accessible to all authenticated roles */}
                   <Route path="knowledge" element={<StudentAssistant />} />
+
+                  {/* First-login password change — accessible to all authenticated users */}
+                  <Route path="change-password" element={
+                    <ProtectedRoute>
+                      <ChangePassword />
+                    </ProtectedRoute>
+                  } />
                 </Route>
               </Routes>
             </Suspense>

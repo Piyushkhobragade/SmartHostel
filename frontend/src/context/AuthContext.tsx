@@ -10,6 +10,7 @@ interface User {
     username: string;
     role: string;
     residentId?: string; // Present for STUDENT accounts
+    mustChangePassword?: boolean;
 }
 
 interface AuthContextType {

@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useState, useEffect } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { residentsAPI, attendanceAPI, roomsAPI } from '../services/api'
 import { DataGrid } from '../components/DataGrid'
 import type { ColumnDef, BulkAction } from '../components/DataGrid'
@@ -7,7 +8,7 @@ import Button from '../components/Button'
 import Input from '../components/Input'
 import Modal from '../components/Modal'
 import StatusBadge, { resolveVariant } from '../components/widgets/StatusBadge'
-import { Plus, Pencil, Trash2, X, User, Phone, Mail, Home, Clock, UserPlus } from 'lucide-react'
+import { Plus, Pencil, Trash2, X, User, Phone, Mail, Home, Clock, UserPlus, ClipboardList } from 'lucide-react'
 import { useToast } from '../context/ToastContext'
 import EmptyState from '../components/ui/EmptyState'
 
@@ -42,6 +43,7 @@ interface Room {
 // ─── Component ────────────────────────────────────────────────────────────────
 
 export default function Residents() {
+    const navigate = useNavigate()
     const [residents, setResidents] = useState<Resident[]>([])
     const [rooms, setRooms] = useState<Room[]>([])
     const [attendance, setAttendance] = useState<Attendance[]>([])
@@ -273,10 +275,16 @@ export default function Residents() {
                     searchFilter={searchFilter}
                     csvExport={{ filename: 'residents' }}
                     toolbarActions={
-                        <Button onClick={() => setShowForm(true)}>
-                            <Plus className="w-4 h-4 mr-2" />
-                            Register Resident
-                        </Button>
+                        <div className="flex gap-2">
+                            <Button variant="secondary" onClick={() => navigate('/admissions/new')}>
+                                <ClipboardList className="w-4 h-4 mr-2" />
+                                New Admission
+                            </Button>
+                            <Button onClick={() => setShowForm(true)}>
+                                <Plus className="w-4 h-4 mr-2" />
+                                Register Resident
+                            </Button>
+                        </div>
                     }
                     emptyState={
                         <EmptyState
