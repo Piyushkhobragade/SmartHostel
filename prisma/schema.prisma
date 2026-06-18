@@ -1,0 +1,315 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                 String   @id @default(uuid())
+  username           String   @unique
+  passwordHash       String
+  role               String   // ADMIN | STAFF | STUDENT
+  mustChangePassword Boolean  @default(true)
+  residentId         String?  @unique // Linked resident profile for STUDENT accounts
+  resident           Resident? @relation("UserResident", fields: [residentId], references: [id])
+  conversations      CopilotConversation[]
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+}
+
+enum ResidentStatus {
+  DRAFT
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+model Resident {
+  id           String         @id @default(uuid())
+  fullName     String
+  email        String         @unique
+  phone        String
+  status       ResidentStatus @default(ACTIVE)
+  roomId       String?
+  room         Room?          @relation(fields: [roomId], references: [id])
+
+  dateOfBirth   DateTime?
+  bloodGroup    String?
+  parentName    String?
+  parentPhone   String?
+  parentAddress String?
+
+  // Linked student account (optional)
+  userAccount       User?     @relation("UserResident")
+
+  attendance        AttendanceLog[]
+  visitors          VisitorLog[]
+  feeInvoices       FeeInvoice[]
+  payments          Payment[]
+  maintenanceReqs   MaintenanceRequest[]
+  messSubscriptions MessSubscription[]
+  roomSwapRequests  RoomSwapRequest[]
+  documents         Document[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([roomId])
+  @@index([email])
+}
+
+model AdmissionDraft {
+  id        String   @id @default(uuid())
+  payload   Json
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([expiresAt])
+}
+
+model Document {
+  id         String   @id @default(uuid())
+  residentId String
+  resident   Resident @relation(fields: [residentId], references: [id])
+  type       String   // e.g., 'GOVT_ID', 'PHOTO', 'MEDICAL'
+  s3Key      String
+  uploadedAt DateTime @default(now())
+
+  @@index([residentId])
+}
+
+model Room {
+  id               String   @id @default(uuid())
+  roomNumber       String   @unique
+  capacity         Int
+  currentOccupancy Int      @default(0)
+  type             String
+  status           String   @default("AVAILABLE")
+  floor            String?  // e.g. "1", "2", "3"
+  block            String?  // e.g. "A", "B"
+  residents        Resident[]
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([status])
+  @@index([currentOccupancy])
+}
+
+model AttendanceLog {
+  id          String    @id @default(uuid())
+  residentId  String
+  resident    Resident  @relation(fields: [residentId], references: [id])
+  status      String
+  date        DateTime
+  method      String    @default("MANUAL")
+  checkInTime DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([residentId])
+  @@index([date])
+  @@index([status])
+}
+
+model VisitorLog {
+  id           String    @id @default(uuid())
+  visitorName  String
+  residentId   String
+  resident     Resident  @relation(fields: [residentId], references: [id])
+  checkInTime  DateTime  @default(now())
+  checkOutTime DateTime?
+  purpose      String
+  idType       String
+  idLast4      String
+  preRegistered Boolean  @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([residentId])
+  @@index([checkOutTime])
+}
+
+model Asset {
+  id          String   @id @default(uuid())
+  name        String
+  category    String
+  status      String
+  location    String
+  purchasedAt DateTime?
+  maintenance MaintenanceRequest[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model MaintenanceRequest {
+  id          String    @id @default(uuid())
+  assetId     String?
+  asset       Asset?    @relation(fields: [assetId], references: [id])
+  residentId  String?
+  resident    Resident? @relation(fields: [residentId], references: [id])
+  category    String
+  description String
+  status      String    @default("OPEN")
+  priority    String    @default("MEDIUM")  // LOW | MEDIUM | HIGH | URGENT
+  resolvedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([status])
+  @@index([priority])
+  @@index([residentId])
+  @@index([createdAt])
+}
+
+model FeeInvoice {
+  id          String    @id @default(uuid())
+  residentId  String
+  resident    Resident  @relation(fields: [residentId], references: [id])
+  amount      Float
+  dueDate     DateTime
+  description String
+  status      String    @default("PENDING")
+  issuedAt    DateTime  @default(now())
+  payments    Payment[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([residentId])
+  @@index([status])
+  @@index([dueDate])
+}
+
+model Payment {
+  id         String     @id @default(uuid())
+  invoiceId  String
+  invoice    FeeInvoice @relation(fields: [invoiceId], references: [id])
+  residentId String
+  resident   Resident   @relation(fields: [residentId], references: [id])
+  amount     Float
+  paidAt     DateTime   @default(now())
+  method     String
+  reference  String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+}
+
+model OccupancyHistory {
+  id           String   @id @default(uuid())
+  date         DateTime
+  totalBeds    Int
+  occupiedBeds Int
+  createdAt    DateTime @default(now())
+}
+
+model MessSubscription {
+  id         String    @id @default(uuid())
+  residentId String
+  resident   Resident  @relation(fields: [residentId], references: [id])
+  planName   String
+  monthlyFee Float
+  startDate  DateTime
+  endDate    DateTime?
+  isActive   Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  @@index([residentId])
+  @@index([isActive])
+}
+
+model RoomSwapRequest {
+  id               String   @id @default(uuid())
+  residentId       String
+  resident         Resident @relation(fields: [residentId], references: [id])
+  currentRoomId    String
+  requestedRoomId  String?
+  reason           String
+  status           String   @default("PENDING") // PENDING | APPROVED | REJECTED
+  aiRecommendation String?  // JSON: AI room recommendations with reasoning
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model CopilotConversation {
+  id        String           @id @default(uuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id])
+  title     String?
+  messages  CopilotMessage[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model CopilotMessage {
+  id             String              @id @default(uuid())
+  conversationId String
+  conversation   CopilotConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           String              // "user" | "assistant"
+  content        String
+  evidence       String?             // JSON: AI evidence panel data
+  createdAt      DateTime            @default(now())
+}
+
+model KnowledgeDocument {
+  id        String   @id @default(uuid())
+  title     String
+  content   String
+  category  String   // RULES | POLICY | FAQ | PROCEDURE | CONTACT
+  tags      String?
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category])
+}
+
+model OperationalEvent {
+  id          String   @id @default(uuid())
+  type        String
+  actorId     String?  // References User.id
+  entityType  String
+  entityId    String
+  title       String
+  description String?
+  metadata    String?
+  severity    String   @default("INFO") // INFO | WARNING | CRITICAL
+  createdAt   DateTime @default(now())
+
+  @@index([entityType, entityId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model Alert {
+  id             String    @id @default(uuid())
+  type           String
+  severity       String    // CRITICAL | HIGH | MEDIUM | LOW
+  status         String    @default("ACTIVE") // ACTIVE | ACKNOWLEDGED | RESOLVED | DISMISSED
+  title          String
+  description    String
+  evidence       String?   // JSON: AI evidence panel data
+  recommendation String?
+  confidence     Float?
+  acknowledgedAt DateTime?
+  resolvedAt     DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@index([status])
+  @@index([severity])
+  @@index([createdAt])
+}
+
+model HostelConfig {
+  id        String   @id @default(uuid())
+  key       String   @unique
+  value     String   // JSON value
+  category  String   @default("GENERAL")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
