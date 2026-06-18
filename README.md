@@ -451,6 +451,4 @@ https://github.com/Piyushkhobragade
 
 ---
 
-# License
-
-This project is currently maintained as an academic and infrastructure-engineering showcase platform.
+# work in progress
