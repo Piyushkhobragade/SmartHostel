@@ -90,7 +90,7 @@ jobs:
           script: |
             set -e
             echo "═══════════════════════════════════════════════════"
-            echo "  🚀 Auto-deploying SmartHostel from GitHub Actions"
+            echo "   Auto-deploying SmartHostel from GitHub Actions"
             echo "═══════════════════════════════════════════════════"
 
             cd ~/SmartHostel
