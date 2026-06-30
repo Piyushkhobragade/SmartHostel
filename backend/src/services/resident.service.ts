@@ -1,4 +1,6 @@
 import prisma from '../lib/prisma';
+import { residentRepository } from '../repositories/resident';
+import { roomRepository } from '../repositories/room';
 import { ResidentStatus } from '@prisma/client';
 
 export const residentService = {
@@ -8,45 +10,47 @@ export const residentService = {
         const skip = (page - 1) * limit;
 
         const where: any = {};
-        if (filters.status) where.status = filters.status as ResidentStatus;
+        if (filters.status) {
+            where.status = filters.status as ResidentStatus;
+        }
 
         const [residents, total] = await Promise.all([
-            prisma.resident.findMany({
-                where,
-                skip,
-                take: limit,
-                orderBy: { createdAt: 'desc' },
-                include: { room: { select: { id: true, roomNumber: true } } },
-            }),
-            prisma.resident.count({ where }),
+            residentRepository.findMany(where, skip, limit),
+            residentRepository.count(where),
         ]);
 
         return {
             data: residents,
-            pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+            pagination: {
+                page,
+                limit,
+                total,
+                totalPages: Math.ceil(total / limit),
+            },
         };
     },
 
     async createResident(data: { fullName: string; email: string; phone: string; status?: string; roomId?: string | null }) {
-        return await prisma.$transaction(async (tx) => {
-            const newResident = await tx.resident.create({
-                data: {
-                    fullName: data.fullName,
-                    email: data.email,
-                    phone: data.phone,
-                    status: (data.status as ResidentStatus) || ResidentStatus.ACTIVE,
-                    roomId: data.roomId,
-                },
+        return prisma.$transaction(async (tx) => {
+            const resident = await residentRepository.create(tx, {
+                fullName: data.fullName,
+                email: data.email,
+                phone: data.phone,
+                status: (data.status as ResidentStatus) ?? ResidentStatus.ACTIVE,
+                room: data.roomId
+                    ? {
+                          connect: {
+                              id: data.roomId,
+                          },
+                      }
+                    : undefined,
             });
 
             if (data.roomId) {
-                await tx.room.update({
-                    where: { id: data.roomId },
-                    data: { currentOccupancy: { increment: 1 } },
-                });
+                await roomRepository.incrementOccupancy(tx, data.roomId);
             }
 
-            return newResident;
+            return resident;
         });
     },
 

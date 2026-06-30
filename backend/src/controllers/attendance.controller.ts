@@ -1,55 +1,39 @@
-import { Request, Response } from 'express';
-import prisma from '../lib/prisma';
+import { Request, Response } from "express";
+import { attendanceService } from "../services/attendance.service";
 
-export const getAttendance = async (req: Request, res: Response) => {
+export const getAttendance = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
     try {
-        const { date, residentId } = req.query;
-        const where: any = {};
-
-        if (date) {
-            const searchDate = new Date(date as string);
-            const nextDay = new Date(searchDate);
-            nextDay.setDate(nextDay.getDate() + 1);
-
-            where.date = {
-                gte: searchDate,
-                lt: nextDay
-            };
-        }
-
-        if (residentId) {
-            where.residentId = residentId as string;
-        }
-
-        const attendance = await prisma.attendanceLog.findMany({
-            where,
-            include: {
-                resident: true,
-            },
-            orderBy: {
-                date: 'desc',
-            },
+        const attendance = await attendanceService.getAttendance({
+            date: req.query.date as string | undefined,
+            residentId: req.query.residentId as string | undefined,
         });
+
         res.json(attendance);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to fetch attendance' });
+        console.error("Failed to fetch attendance:", error);
+
+        res.status(500).json({
+            error: "Failed to fetch attendance",
+        });
     }
 };
 
-export const markAttendance = async (req: Request, res: Response) => {
+export const markAttendance = async (
+    req: Request,
+    res: Response
+): Promise<void> => {
     try {
-        const { residentId, date, status, checkInTime, method } = req.body;
-        const attendance = await prisma.attendanceLog.create({
-            data: {
-                residentId,
-                date: new Date(date),
-                status,
-                method: method || 'MANUAL',
-                checkInTime: checkInTime ? new Date(checkInTime) : null,
-            },
-        });
+        const attendance = await attendanceService.markAttendance(req.body);
+
         res.json(attendance);
     } catch (error) {
-        res.status(500).json({ error: 'Failed to mark attendance' });
+        console.error("Failed to mark attendance:", error);
+
+        res.status(500).json({
+            error: "Failed to mark attendance",
+        });
     }
 };
