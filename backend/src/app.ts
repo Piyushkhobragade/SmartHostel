@@ -1,4 +1,6 @@
 import express from 'express';
+import { register } from "./monitoring/prometheus";
+import { prometheusMiddleware } from "./middleware/prometheus.middleware";
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
@@ -33,6 +35,7 @@ import healthRoutes from './routes/health.routes';
 import crypto from 'crypto';
 
 const app = express();
+app.use(prometheusMiddleware);
 const PORT = env.PORT;
 app.use(helmet());
 app.use(pinoHttp({ 
