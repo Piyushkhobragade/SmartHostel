@@ -27,7 +27,7 @@ export const createAsset = async (req: Request, res: Response) => {
 
 export const updateAsset = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = String(req.params.id);
         const asset = await assetService.updateAsset(id, req.body);
         res.json(asset);
     } catch (error) {
@@ -38,7 +38,7 @@ export const updateAsset = async (req: Request, res: Response) => {
 
 export const deleteAsset = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = String(req.params.id);
         await assetService.deleteAsset(id);
         res.json({ message: 'Asset deleted successfully' });
     } catch (error) {

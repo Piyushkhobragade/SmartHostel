@@ -27,7 +27,7 @@ export const createResident = async (req: Request, res: Response) => {
 
 export const updateResident = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = String(req.params.id);
         const resident = await residentService.updateResident(id, req.body);
         res.json(resident);
     } catch (error: any) {
@@ -41,7 +41,7 @@ export const updateResident = async (req: Request, res: Response) => {
 
 export const deleteResident = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = String(req.params.id);
         await residentService.deleteResident(id);
         res.json({ message: 'Resident deleted successfully' });
     } catch (error) {

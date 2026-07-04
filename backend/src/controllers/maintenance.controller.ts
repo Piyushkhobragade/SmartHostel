@@ -27,7 +27,7 @@ export const createMaintenanceRequest = async (req: Request, res: Response) => {
 
 export const updateMaintenanceRequest = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = String(req.params.id);
         const { status } = req.body;
         const request = await maintenanceService.updateMaintenanceRequest(id, { status });
         res.json(request);

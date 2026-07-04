@@ -19,7 +19,7 @@ export const messSubscriptionController = {
     // GET /api/mess/subscriptions/:id
     async getMessSubscription(req: Request, res: Response) {
         try {
-            const { id } = req.params;
+            const id = String(req.params.id);
             const subscription = await messSubscriptionService.getMessSubscriptionById(id);
 
             if (!subscription) {
@@ -73,7 +73,7 @@ export const messSubscriptionController = {
     // PUT /api/mess/subscriptions/:id
     async updateMessSubscription(req: Request, res: Response) {
         try {
-            const { id } = req.params;
+            const id = String(req.params.id);
             const { planName, monthlyFee, startDate, endDate, isActive } = req.body;
 
             // Validate monthlyFee if provided
@@ -104,7 +104,7 @@ export const messSubscriptionController = {
     // PATCH /api/mess/subscriptions/:id/deactivate
     async deactivateMessSubscription(req: Request, res: Response) {
         try {
-            const { id } = req.params;
+            const id = String(req.params.id);
             const subscription = await messSubscriptionService.deactivateMessSubscription(id);
             res.json(subscription);
         } catch (error: any) {

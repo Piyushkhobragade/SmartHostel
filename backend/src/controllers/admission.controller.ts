@@ -13,7 +13,7 @@ export const createDraft = async (req: Request, res: Response) => {
 
 export const updateDraft = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = String(req.params.id);
         const { step, data } = req.body;
         const updated = await admissionService.updateDraft(id, step, data);
         res.json(updated);

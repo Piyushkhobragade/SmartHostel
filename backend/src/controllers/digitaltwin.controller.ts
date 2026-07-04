@@ -131,7 +131,7 @@ export const getHeatmap = async (req: Request, res: Response) => {
 export const getRoomProfile = async (req: Request, res: Response) => {
     try {
         const room = await prisma.room.findUnique({
-            where: { id: req.params.id },
+            where: { id: String(req.params.id) },
             include: {
                 residents: {
                     where: { status: 'ACTIVE' },
