@@ -1,4 +1,6 @@
 import express from 'express';
+import { register } from "./monitoring/prometheus";
+import { prometheusMiddleware } from "./middleware/prometheus.middleware";
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
@@ -20,10 +22,9 @@ import digitaltwinRoutes from './routes/digitaltwin.routes';
 import dashboardRoutes from './routes/dashboard.routes';
 import admissionRoutes from './routes/admission.routes';
 import { verifyToken } from './middleware/auth.middleware';
-import { initializeDatabase } from './utils/dbInit';
-import { seedKnowledgeDocuments } from './services/ai/knowledge.service';
-import { startupDiagnostics } from './services/ai/gemini';
-import { startScheduler, stopScheduler } from './services/scheduler';
+import { initializeDatabase } from './startup/database';
+import { bootstrapApplication } from './startup/bootstrap';
+import { stopScheduler } from './startup/bootstrap';
 import helmet from 'helmet';
 import pinoHttp from 'pino-http';
 import { env } from './config/env';
@@ -34,8 +35,8 @@ import healthRoutes from './routes/health.routes';
 import crypto from 'crypto';
 
 const app = express();
+app.use(prometheusMiddleware);
 const PORT = env.PORT;
-
 app.use(helmet());
 app.use(pinoHttp({ 
     logger,
@@ -48,20 +49,20 @@ app.use(pinoHttp({
 app.use(generalLimiter);
 app.use(cors());
 app.use(express.json());
-
 // Health and Metrics endpoints
-app.use('/', healthRoutes);
+app.use("/", healthRoutes);
 
-app.get('/', (req, res) => {
-    res.send('Smart Hostel API is running');
+app.get("/metrics", async (_req, res) => {
+    res.set("Content-Type", register.contentType);
+    res.end(await register.metrics());
 });
 
-// Specific rate limiter for login
+app.get("/", (_req, res) => {
+    res.send("Smart Hostel API is running");
+});// Specific rate limiter for login
 app.use('/api/auth/login', authLimiter);
-
 // Public routes (no authentication required)
 app.use('/api/auth', authRoutes);
-
 // Protected routes (require authentication + role-based access)
 app.use('/api/admissions', verifyToken, admissionRoutes);
 app.use('/api/residents', verifyToken, residentRoutes);
@@ -80,20 +81,12 @@ app.use('/api/copilot', verifyToken, copilotRoutes);
 app.use('/api', verifyToken, intelligenceRoutes);
 app.use('/api/twin', verifyToken, digitaltwinRoutes);
 app.use('/api/dashboard', verifyToken, dashboardRoutes);
-
 // Global Error Handler (must be the last middleware)
 app.use(errorHandler);
-
 const startServer = async () => {
     try {
         await initializeDatabase();
-        await seedKnowledgeDocuments();
-
-        // Start the intelligence scheduler (runs immediately, then every 30 min)
-        startScheduler();
-
-        // Run Ollama startup diagnostics (non-blocking — AI degrades gracefully)
-        void startupDiagnostics();
+        await bootstrapApplication();
 
         app.listen(PORT, () => {
             logger.info(`Server is running on port ${PORT}`);

@@ -54,7 +54,7 @@ export const createDocument = async (req: Request, res: Response) => {
  */
 export const updateDocument = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = String(req.params.id);
         const { title, content, category, tags, isActive } = req.body;
 
         const doc = await prisma.knowledgeDocument.update({
@@ -80,7 +80,7 @@ export const updateDocument = async (req: Request, res: Response) => {
  */
 export const deleteDocument = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = String(req.params.id);
         await prisma.knowledgeDocument.delete({ where: { id } });
         res.json({ message: 'Document deleted.' });
     } catch (error: any) {

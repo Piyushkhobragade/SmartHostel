@@ -1,0 +1,100 @@
+==================== SERVICES ====================
+src/services/admission.service.ts
+src/services/ai/copilot.service.ts
+src/services/ai/gemini.ts
+src/services/ai/intelligence.service.ts
+src/services/ai/knowledge.service.ts
+src/services/ai/student.service.ts
+src/services/analytics.service.ts
+src/services/asset.service.ts
+src/services/dashboard.service.ts
+src/services/fee.service.ts
+src/services/maintenance.service.ts
+src/services/messSubscription.service.ts
+src/services/resident.service.backup
+src/services/resident.service.ts
+src/services/room.service.ts
+src/services/scheduler.ts
+src/services/visitor.service.ts
+
+==================== CONTROLLERS ====================
+src/controllers/admission.controller.ts
+src/controllers/analytics.controller.ts
+src/controllers/asset.controller.ts
+src/controllers/attendance.controller.ts
+src/controllers/auth.controller.ts
+src/controllers/copilot.controller.ts
+src/controllers/dashboard.controller.ts
+src/controllers/digitaltwin.controller.ts
+src/controllers/fee.controller.ts
+src/controllers/intelligence.controller.ts
+src/controllers/knowledge.controller.ts
+src/controllers/maintenance.controller.ts
+src/controllers/messSubscription.controller.ts
+src/controllers/resident.controller.ts
+src/controllers/room.controller.ts
+src/controllers/student.controller.ts
+src/controllers/summary.controller.ts
+src/controllers/visitor.controller.ts
+
+==================== ROUTES ====================
+src/routes/admission.routes.ts
+src/routes/analytics.routes.ts
+src/routes/asset.routes.ts
+src/routes/attendance.routes.ts
+src/routes/auth.routes.ts
+src/routes/copilot.routes.ts
+src/routes/dashboard.routes.ts
+src/routes/digitaltwin.routes.ts
+src/routes/fee.routes.ts
+src/routes/health.routes.ts
+src/routes/intelligence.routes.ts
+src/routes/knowledge.routes.ts
+src/routes/maintenance.routes.ts
+src/routes/mess.routes.ts
+src/routes/resident.routes.ts
+src/routes/room.routes.ts
+src/routes/student.routes.ts
+src/routes/summary.routes.ts
+src/routes/visitor.routes.ts
+
+==================== PRISMA IMPORTS ====================
+src/services/room.service.ts:import prisma from '../lib/prisma';
+src/services/maintenance.service.ts:import prisma from '../lib/prisma';
+src/services/visitor.service.ts:import prisma from '../lib/prisma';
+src/services/asset.service.ts:import prisma from '../lib/prisma';
+src/services/messSubscription.service.ts:import prisma from '../lib/prisma';
+src/services/fee.service.ts:import prisma from '../lib/prisma';
+src/services/analytics.service.ts:import prisma from '../lib/prisma';
+src/services/resident.service.ts:import prisma from '../lib/prisma';
+src/services/resident.service.backup:import prisma from '../lib/prisma';
+src/services/admission.service.ts:import prisma from '../lib/prisma';
+src/services/ai/knowledge.service.ts:import prisma from '../../lib/prisma';
+src/services/ai/copilot.service.ts:import prisma from '../../lib/prisma';
+src/services/ai/student.service.ts:import prisma from '../../lib/prisma';
+src/services/ai/intelligence.service.ts:import prisma from '../../lib/prisma';
+src/services/dashboard.service.ts:import prisma from '../lib/prisma';
+src/controllers/attendance.controller.ts:import prisma from '../lib/prisma';
+src/controllers/student.controller.ts:import prisma from '../lib/prisma';
+src/controllers/knowledge.controller.ts:import prisma from '../lib/prisma';
+src/controllers/summary.controller.ts:import prisma from '../lib/prisma';
+src/controllers/intelligence.controller.ts:import prisma from '../lib/prisma';
+src/controllers/auth.controller.ts:import prisma from '../lib/prisma';
+src/controllers/copilot.controller.ts:import prisma from '../lib/prisma';
+src/controllers/digitaltwin.controller.ts:import prisma from '../lib/prisma';
+
+==================== TRANSACTIONS ====================
+src/services/fee.service.ts:        return await prisma.$transaction(async (tx) => {
+src/services/resident.service.ts:        return await prisma.$transaction(async (tx) => {
+src/services/resident.service.ts:        return await prisma.$transaction(async (tx) => {
+src/services/resident.service.ts:        return await prisma.$transaction(async (tx) => {
+src/services/resident.service.backup:        return await prisma.$transaction(async (tx) => {
+src/services/resident.service.backup:        return await prisma.$transaction(async (tx) => {
+src/services/resident.service.backup:        return await prisma.$transaction(async (tx) => {
+src/services/admission.service.ts:        const result = await prisma.$transaction(async (tx) => {
+
+==================== REPOSITORIES ====================
+src/repositories/resident/ResidentRepository.ts
+src/repositories/resident/index.ts
+src/repositories/room/RoomRepository.ts
+src/repositories/room/index.ts

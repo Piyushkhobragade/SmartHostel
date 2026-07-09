@@ -66,7 +66,7 @@ export const getAlerts = async (req: Request, res: Response) => {
  */
 export const updateAlert = async (req: AuthRequest, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = String(req.params.id);
         const { status } = req.body;
 
         if (!['ACKNOWLEDGED', 'RESOLVED', 'DISMISSED'].includes(status)) {

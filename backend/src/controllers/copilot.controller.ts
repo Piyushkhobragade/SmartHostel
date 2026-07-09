@@ -79,7 +79,7 @@ export const getConversations = async (req: AuthRequest, res: Response) => {
  */
 export const getConversation = async (req: AuthRequest, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = String(req.params.id);
         const conversation = await prisma.copilotConversation.findFirst({
             where: { id, userId: req.user!.id },
             include: {
@@ -107,7 +107,7 @@ export const getConversation = async (req: AuthRequest, res: Response) => {
  */
 export const deleteConversation = async (req: AuthRequest, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = String(req.params.id);
         await prisma.copilotConversation.deleteMany({
             where: { id, userId: req.user!.id }
         });

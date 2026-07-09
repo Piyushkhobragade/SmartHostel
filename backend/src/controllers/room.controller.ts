@@ -21,7 +21,7 @@ export const createRoom = async (req: Request, res: Response) => {
 
 export const updateRoom = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = String(req.params.id);
         const room = await roomService.updateRoom(id, req.body);
         res.json(room);
     } catch (error) {
@@ -31,7 +31,7 @@ export const updateRoom = async (req: Request, res: Response) => {
 
 export const deleteRoom = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = String(req.params.id);
         await roomService.deleteRoom(id);
         res.json({ message: 'Room deleted successfully' });
     } catch (error) {

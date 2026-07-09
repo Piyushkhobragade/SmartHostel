@@ -1,0 +1,16 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+
+metadata:
+  name: backend-role
+  namespace: smart-hostel
+
+rules:
+- apiGroups: [""]
+  resources:
+    - configmaps
+    - secrets
+    - services
+  verbs:
+    - get
+    - list

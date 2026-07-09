@@ -27,7 +27,7 @@ export const createVisitor = async (req: Request, res: Response) => {
 
 export const checkoutVisitor = async (req: Request, res: Response) => {
     try {
-        const { id } = req.params;
+        const id = String(req.params.id);
         const visitor = await visitorService.checkoutVisitor(id);
         res.json(visitor);
     } catch (error) {

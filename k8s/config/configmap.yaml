@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+  name: smart-hostel-config
+  namespace: smart-hostel
+
+data:
+  NODE_ENV: "production"
+  PORT: "3000"
+  GEMINI_MODEL: "gemini-2.5-flash"
