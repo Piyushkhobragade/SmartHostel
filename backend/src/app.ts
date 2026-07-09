@@ -50,11 +50,16 @@ app.use(generalLimiter);
 app.use(cors());
 app.use(express.json());
 // Health and Metrics endpoints
-app.use('/', healthRoutes);
-app.get('/', (req, res) => {
-    res.send('Smart Hostel API is running');
+app.use("/", healthRoutes);
+
+app.get("/metrics", async (_req, res) => {
+    res.set("Content-Type", register.contentType);
+    res.end(await register.metrics());
 });
-// Specific rate limiter for login
+
+app.get("/", (_req, res) => {
+    res.send("Smart Hostel API is running");
+});// Specific rate limiter for login
 app.use('/api/auth/login', authLimiter);
 // Public routes (no authentication required)
 app.use('/api/auth', authRoutes);

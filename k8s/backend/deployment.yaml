@@ -21,6 +21,8 @@ spec:
         app: backend
 
     spec:
+      serviceAccountName: backend-sa
+
       containers:
         - name: backend
 
@@ -41,7 +43,6 @@ spec:
             requests:
               cpu: "250m"
               memory: "256Mi"
-
             limits:
               cpu: "500m"
               memory: "512Mi"
