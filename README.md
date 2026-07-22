@@ -9,7 +9,7 @@
   <img src="https://img.shields.io/badge/Kustomize-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white" />
 </p>
 
-<h1 align="center">&#9729;&#65039; SmartHostel</h1>
+<h1 align="center">&#9729;&#65039; HostOps</h1>
 
 <p align="center">
   <b>A production-grade, cloud-native hostel management platform demonstrating<br/>end-to-end DevOps, container orchestration, and CI/CD automation.</b>
